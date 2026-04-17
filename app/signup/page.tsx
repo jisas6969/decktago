@@ -11,19 +11,30 @@ import { Card } from '@/components/ui/card';
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
   const { signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signup(email, password, displayName);
+      await signup(email, password, fullName, phoneNumber, companyName);
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
@@ -37,7 +48,9 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <div className="p-8">
           <h1 className="text-3xl font-bold text-center mb-2">Create Account</h1>
-          <p className="text-center text-slate-600 mb-6">Join us for an amazing shopping experience</p>
+          <p className="text-center text-slate-600 mb-6">
+            Join us for an amazing shopping experience
+          </p>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
@@ -46,47 +59,27 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Full Name
-              </label>
-              <Input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="John Doe"
-                required
-                disabled={loading}
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Email
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                disabled={loading}
-              />
-            </div>
+            <InputField label="Full Name" value={fullName} setValue={setFullName} />
+            <InputField label="Phone Number" value={phoneNumber} setValue={setPhoneNumber} />
+            <InputField label="Company Name" value={companyName} setValue={setCompanyName} />
+            <InputField label="Email" type="email" value={email} setValue={setEmail} />
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Password
-              </label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loading}
-              />
-            </div>
+            <PasswordField
+              label="Password"
+              value={password}
+              setValue={setPassword}
+              show={showPassword}
+              toggle={() => setShowPassword(!showPassword)}
+            />
+
+            <PasswordField
+              label="Confirm Password"
+              value={confirmPassword}
+              setValue={setConfirmPassword}
+              show={showPassword}
+              toggle={() => setShowPassword(!showPassword)}
+            />
 
             <Button
               type="submit"
@@ -107,6 +100,43 @@ export default function SignupPage() {
           </div>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function InputField({ label, value, setValue, type = 'text' }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-2">{label}</label>
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        required
+      />
+    </div>
+  );
+}
+
+function PasswordField({ label, value, setValue, show, toggle }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-2">{label}</label>
+      <div className="relative">
+        <Input
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          required
+        />
+        <button
+          type="button"
+          onClick={toggle}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500"
+        >
+          {show ? 'Hide' : 'Show'}
+        </button>
+      </div>
     </div>
   );
 }

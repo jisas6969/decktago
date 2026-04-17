@@ -9,21 +9,35 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
 
 interface UserData {
   uid: string;
   email: string;
-  displayName: string;
-  address?: string;
-  phone?: string;
+  fullName: string;
+  phoneNumber: string;
+  companyName: string;
+  role: string;
+  createdAt?: Timestamp;
 }
 
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
-  signup: (email: string, password: string, displayName: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    fullName: string,
+    phoneNumber: string,
+    companyName: string
+  ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
@@ -36,12 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Listen to auth state changes
+  // 🔁 Listen to auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Fetch user data from Firestore
+
         try {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
@@ -54,51 +68,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setUserData(null);
       }
+
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
-  const signup = async (email: string, password: string, displayName: string) => {
+  // 📝 SIGNUP
+  const signup = async (
+    email: string,
+    password: string,
+    fullName: string,
+    phoneNumber: string,
+    companyName: string
+  ) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const newUser = userCredential.user;
 
-    // Create user document in Firestore
-    const userData: UserData = {
+    const newUserData: UserData = {
       uid: newUser.uid,
       email: newUser.email!,
-      displayName,
+      fullName,
+      phoneNumber,
+      companyName,
+      role: 'CUSTOMER',
+      createdAt: serverTimestamp() as Timestamp,
     };
 
-    await setDoc(doc(db, 'users', newUser.uid), userData);
-    setUserData(userData);
+    await setDoc(doc(db, 'users', newUser.uid), newUserData);
+    setUserData(newUserData);
   };
 
+  // 🔐 LOGIN
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
+  // 🚪 LOGOUT
   const logout = async () => {
     await signOut(auth);
   };
 
+  // 🔄 UPDATE USER DATA
   const updateUserData = async (data: Partial<UserData>) => {
     if (!user) throw new Error('No user logged in');
+
     await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+
     setUserData((prev) => (prev ? { ...prev, ...data } : null));
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, signup, login, logout, updateUserData }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userData,
+        loading,
+        signup,
+        login,
+        logout,
+        updateUserData,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
+// 🔗 HOOK
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
   return context;

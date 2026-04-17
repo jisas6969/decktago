@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
+
 
 export default function HomePage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -64,7 +64,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation user={user} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="mb-8">

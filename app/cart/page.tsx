@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
+
 
 export default function CartPage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -47,7 +47,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation user={user} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
@@ -70,10 +69,13 @@ export default function CartPage() {
                     <div className="flex gap-4">
                       <div className="w-24 h-24 bg-slate-200 rounded overflow-hidden flex-shrink-0">
                         <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+  src={item.image && item.image.trim() ? item.image : '/placeholder.png'}
+  alt={item.name || 'Product'}
+  className="w-full h-full object-cover"
+  onError={(e) => {
+    (e.currentTarget as HTMLImageElement).src = '/placeholder.png';
+  }}
+/>
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-2">{item.name}</h3>

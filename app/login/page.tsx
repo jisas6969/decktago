@@ -11,8 +11,10 @@ import { Card } from '@/components/ui/card';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
   const { login } = useAuth();
 
@@ -45,6 +47,8 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* EMAIL */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Email
@@ -59,18 +63,28 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* PASSWORD WITH SHOW/HIDE */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Password
               </label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
 
             <Button

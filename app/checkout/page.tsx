@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -119,7 +118,6 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Navigation user={user} onLogout={handleLogout} />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
@@ -136,7 +134,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation user={user} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">Checkout</h1>

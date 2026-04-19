@@ -7,14 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ProductImage from '@/components/ProductImage';
 
-<<<<<<< HEAD
-// 🔥 NEW IMPORTS
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-=======
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
 
 export default function HomePage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -22,11 +19,12 @@ export default function HomePage() {
   const { addItem } = useCart();
   const router = useRouter();
 
-<<<<<<< HEAD
-  // 🔥 NEW STATE
   const [fullName, setFullName] = useState('');
 
-  // 🔥 FETCH USER FULL NAME
+  // 🔥 NEW STATES (SEARCH + FILTER)
+  const [search, setSearch] = useState('');
+  const [selectedType, setSelectedType] = useState('All');
+
   useEffect(() => {
     const fetchUser = async () => {
       if (!user?.uid) return;
@@ -46,21 +44,13 @@ export default function HomePage() {
     fetchUser();
   }, [user]);
 
-=======
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
   const handleAddToCart = (product: any) => {
     addItem({
       id: product.id,
       name: product.name,
-<<<<<<< HEAD
       price: 0,
       quantity: 1,
       image: product.imageUrl,
-=======
-      price: product.price,
-      quantity: 1,
-      image: product.image,
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
     });
   };
 
@@ -68,6 +58,17 @@ export default function HomePage() {
     await logout();
     router.push('/login');
   };
+
+  // 🔥 FILTER LOGIC
+  const filteredProducts = products.filter((product) => {
+    const matchesType =
+      selectedType === 'All' || product.type === selectedType;
+
+    const matchesSearch =
+      product.name.toLowerCase().includes(search.toLowerCase());
+
+    return matchesType && matchesSearch;
+  });
 
   if (authLoading) {
     return (
@@ -105,17 +106,47 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50">
 
       <div className="max-w-7xl mx-auto px-4 py-12">
+
         <div className="mb-8">
-<<<<<<< HEAD
-          {/* 🔥 FIXED HERE */}
           <h1 className="text-3xl font-bold mb-2">
             Welcome, {fullName || user.email}
           </h1>
+          <p className="text-slate-600">
+            Browse our products and add them to your cart
+          </p>
+        </div>
 
-=======
-          <h1 className="text-3xl font-bold mb-2">Welcome, {user.email}</h1>
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
-          <p className="text-slate-600">Browse our products and add them to your cart</p>
+        {/* 🔍 SEARCH + 🥩 FILTER */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+
+          <input
+            type="text"
+            placeholder="Search product..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-4 py-2 rounded-lg w-full md:w-1/3"
+          />
+
+          <div className="flex gap-2 flex-wrap">
+  {['All', 'Beef', 'Chicken', 'Pork'].map((type) => (
+    <button
+      key={type}
+      onClick={() => setSelectedType(type)}
+      className={`px-4 py-2 rounded-lg border transition ${
+        selectedType === type
+          ? 'text-white'
+          : 'bg-white text-gray-700'
+      }`}
+      style={{
+        backgroundColor: selectedType === type ? '#2787b4' : 'white',
+        borderColor: '#2787b4',
+      }}
+    >
+      {type}
+    </button>
+  ))}
+</div>
+
         </div>
 
         {productsLoading ? (
@@ -125,35 +156,22 @@ export default function HomePage() {
               <p className="text-slate-600">Loading products...</p>
             </div>
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-slate-600 mb-4">No products available yet</p>
-            <p className="text-sm text-slate-500">Check back soon!</p>
+            <p className="text-slate-600 mb-4">No products found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-<<<<<<< HEAD
 
-                <div className="aspect-square bg-slate-200 overflow-hidden">
-                  <img
-                    src={product.imageUrl || '/placeholder.png'}
-=======
-                <div className="aspect-square bg-slate-200 overflow-hidden">
-                  <img
-                    src={product.image}
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-<<<<<<< HEAD
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+
+                <ProductImage src={product.imageUrl || '/placeholder.png'} />
 
                 <div className="p-4">
                   <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
 
-                  <p className="text-slate-600 text-sm mb-3 line-clamp-2">
+                  <p className="text-slate-600 text-sm mb-3">
                     {product.type} • {product.defaultWeight ?? 'N/A'}g
                   </p>
 
@@ -169,42 +187,18 @@ export default function HomePage() {
 
                   <Button
                     onClick={() => handleAddToCart(product)}
-=======
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                  <p className="text-slate-600 text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-2xl font-bold text-blue-600">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    disabled={product.stock <= 0}
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full h-12 text-sm font-semibold text-white rounded-xl bg-[#2787b4] hover:bg-[#1f6f94]"
                   >
                     Add to Cart
                   </Button>
                 </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976
               </Card>
             ))}
+
           </div>
         )}
+
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 391da37f7273f4e62b8cd5ec4d5e1fa430961976

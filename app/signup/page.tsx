@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 
+// 🔥 ICONS
+import { Eye, EyeOff, Lock } from 'lucide-react';
+
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +18,11 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [companyName, setCompanyName] = useState('');
+
+  // 🔥 FIXED STATES
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +72,7 @@ export default function SignupPage() {
             <InputField label="Company Name" value={companyName} setValue={setCompanyName} />
             <InputField label="Email" type="email" value={email} setValue={setEmail} />
 
+            {/* 🔒 PASSWORD */}
             <PasswordField
               label="Password"
               value={password}
@@ -73,12 +81,13 @@ export default function SignupPage() {
               toggle={() => setShowPassword(!showPassword)}
             />
 
+            {/* 🔒 CONFIRM PASSWORD */}
             <PasswordField
               label="Confirm Password"
               value={confirmPassword}
               setValue={setConfirmPassword}
-              show={showPassword}
-              toggle={() => setShowPassword(!showPassword)}
+              show={showConfirmPassword}
+              toggle={() => setShowConfirmPassword(!showConfirmPassword)}
             />
 
             <Button
@@ -104,6 +113,7 @@ export default function SignupPage() {
   );
 }
 
+/* 🔹 INPUT FIELD */
 function InputField({ label, value, setValue, type = 'text' }: any) {
   return (
     <div>
@@ -112,31 +122,42 @@ function InputField({ label, value, setValue, type = 'text' }: any) {
         type={type}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        className="h-12"
         required
       />
     </div>
   );
 }
 
+/* 🔹 PASSWORD FIELD WITH 👁️ ICON */
 function PasswordField({ label, value, setValue, show, toggle }: any) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-2">{label}</label>
-      <div className="relative">
-        <Input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          required
-        />
+    <div className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-2">
+        {label}
+      </label>
+
+      {/* 🔒 LEFT ICON */}
+      <Lock className="absolute left-3 top-[38px] text-gray-400" size={18} />
+
+      <Input
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="pl-10 pr-10 h-12"
+        required
+      />
+
+      {/* 👁️ RIGHT ICON */}
+      {value && (
         <button
           type="button"
           onClick={toggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500"
+          className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600"
         >
-          {show ? 'Hide' : 'Show'}
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
-      </div>
+      )}
     </div>
   );
 }

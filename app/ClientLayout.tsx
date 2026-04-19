@@ -2,6 +2,7 @@
 
 import Navigation from '@/components/Navigation';
 import { useAuth } from './context/AuthContext';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({
   children,
@@ -9,13 +10,20 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  // 🚫 pages na walang navbar
+  const hideNavbar =
+    pathname === '/login' ||
+    pathname === '/signup';
 
   return (
     <>
-      {/* ✅ Navbar always visible */}
-      <Navigation user={user} onLogout={logout} />
+      {/* 🔥 CONDITIONAL NAVBAR */}
+      {!hideNavbar && (
+        <Navigation user={user} onLogout={logout} />
+      )}
 
-      {/* ✅ Page content */}
       <main>{children}</main>
     </>
   );

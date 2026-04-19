@@ -20,9 +20,26 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-blue-600">
-          Decktago
-        </Link>
+        <Link href="/" className="flex items-center gap-3">
+  {/* LOGO IMAGE */}
+  <img
+    src="/logo.png" // ilagay mo logo mo sa public folder
+    alt="logo"
+    className="w-10 h-10 object-contain"
+  />
+
+  {/* TEXT */}
+  <div className="leading-tight">
+    <h1 className="text-xl font-bold tracking-tight">
+  <span className="text-black">Deckta</span>
+  <span style={{ color: '#2787b4' }}>G</span>
+  <span style={{ color: '#2787b4' }}>o</span>
+</h1>
+    <p className="text-xs text-slate-500">
+      Pacific Equities
+    </p>
+  </div>
+</Link>
 
         <div className="flex items-center gap-6 relative">
           {user && (

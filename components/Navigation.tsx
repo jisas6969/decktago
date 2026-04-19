@@ -60,46 +60,55 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               </Link>
 
               {/* 👤 ACCOUNT DROPDOWN */}
-              <div className="relative">
-                <button onClick={() => setOpen(!open)}>
-                  <UserIcon className="w-6 h-6 text-gray-700 hover:text-blue-600" />
-                </button>
+<div className="relative">
+  <button onClick={() => setOpen(!open)}>
+    <UserIcon className="w-6 h-6 text-gray-700 hover:text-blue-600" />
+  </button>
 
-                {open && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-lg z-50">
+  {open && (
+    <div className="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-lg z-50">
 
-                    <Link href="/account">
-                      <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <UserIcon size={16} />
-                        Profile
-                      </div>
-                    </Link>
+      <Link href="/account">
+        <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+          <UserIcon size={16} />
+          Profile
+        </div>
+      </Link>
 
-                    <Link href="/orders">
-                      <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <Package size={16} />
-                        Orders
-                      </div>
-                    </Link>
+      <Link href="/orders">
+        <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+          <Package size={16} />
+          Orders
+        </div>
+      </Link>
 
-                    <Link href="/settings">
-                      <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <Settings size={16} />
-                        Settings
-                      </div>
-                    </Link>
+      {/* 🛒 CART (moved here) */}
+      <Link href="/cart">
+        <div className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer">
+          <div className="flex items-center gap-2">
+            <ShoppingCart size={16} />
+            Cart
+          </div>
 
-                    <div
-                      onClick={onLogout}
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
-                    >
-                      <LogOut size={16} />
-                      Logout
-                    </div>
+          {cartCount > 0 && (
+            <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {cartCount}
+            </span>
+          )}
+        </div>
+      </Link>
 
-                  </div>
-                )}
-              </div>
+      <div
+        onClick={onLogout}
+        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
+      >
+        <LogOut size={16} />
+        Logout
+      </div>
+
+    </div>
+  )}
+</div>
             </>
           )}
         </div>

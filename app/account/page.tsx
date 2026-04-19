@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -21,9 +22,6 @@ export default function AccountPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // 🔐 Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,7 +32,6 @@ export default function AccountPage() {
 
   const [loadingPassword, setLoadingPassword] = useState(false);
 
-  // ✅ Sync Firestore data
   useEffect(() => {
     if (userData) {
       setFullName(userData.fullName || '');
@@ -43,7 +40,6 @@ export default function AccountPage() {
     }
   }, [userData]);
 
-  // 💾 Save profile
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -52,33 +48,20 @@ export default function AccountPage() {
         phoneNumber,
         companyName,
       });
-
       alert('Profile updated!');
     } catch (error) {
-      console.error(error);
       alert('Error updating profile');
     }
     setLoading(false);
   };
 
-  // 🔐 Change password
   const handleChangePassword = async () => {
     if (!user || !user.email) return;
 
-    if (!currentPassword) {
-      alert('Enter current password');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
+    if (!currentPassword) return alert('Enter current password');
+    if (newPassword.length < 6) return alert('Minimum 6 characters');
+    if (newPassword !== confirmPassword)
+      return alert('Passwords do not match');
 
     setLoadingPassword(true);
 
@@ -92,16 +75,12 @@ export default function AccountPage() {
       await updatePassword(user, newPassword);
 
       alert('Password updated!');
-
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setIsModalOpen(false);
     } catch (error: any) {
-      console.error(error);
-
       if (error.code === 'auth/wrong-password') {
-        alert('Incorrect current password');
+        alert('Wrong password');
       } else {
         alert('Error updating password');
       }
@@ -115,134 +94,166 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-8">
-      <h1 className="text-2xl font-bold">My Account</h1>
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-xl mx-auto space-y-8">
 
-      {/* 🧑 Profile */}
-      <div className="space-y-4">
-        <h2 className="font-semibold text-lg">Profile Information</h2>
+        {/* HEADER */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">My Account</h1>
+          <p className="text-gray-500">Manage your profile</p>
+        </div>
 
-        <input
-          placeholder="Full Name"
-          className="w-full border p-2 rounded"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-        />
+        {/* MAIN CONTAINER */}
+        <div className="bg-white rounded-2xl shadow-md p-8 border space-y-8">
 
-        <input
-          placeholder="Phone Number"
-          className="w-full border p-2 rounded"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-        />
+          {/* FULL NAME */}
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600 font-medium">
+              Full Name
+            </label>
+            <input
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
 
-        <input
-          placeholder="Company Name"
-          className="w-full border p-2 rounded"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-        />
+          {/* PHONE */}
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600 font-medium">
+              Phone Number
+            </label>
+            <input
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+          </div>
 
-        <Button onClick={handleSave} disabled={loading}>
-          {loading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
+          {/* COMPANY */}
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600 font-medium">
+              Company Name
+            </label>
+            <input
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+          </div>
 
-      {/* 🔐 Change Password Trigger */}
-      <div className="space-y-4">
-        <h2 className="font-semibold text-lg">Security</h2>
+          {/* SAVE BUTTON */}
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white rounded-xl py-4 text-base font-semibold"
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </Button>
 
-        <Button onClick={() => setIsModalOpen(true)}>
-          Change Password
-        </Button>
-      </div>
+          {/* SECURITY */}
+          <div className="border-t pt-6 space-y-6">
 
-      {/* 🚪 Logout */}
-      <div>
-        <Button onClick={logout} variant="destructive">
-          Logout
-        </Button>
-      </div>
+            <h2 className="font-semibold text-gray-700">Security</h2>
 
-      {/* 🔥 MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-            <h2 className="text-xl font-semibold">Change Password</h2>
+            {/* PASSWORD SECTION */}
+            <div className="space-y-4">
 
-            {/* Current */}
-            <div className="relative">
-              <input
-                type={showCurrent ? 'text' : 'password'}
-                placeholder="Current Password"
-                className="w-full border p-2 rounded pr-10"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-2.5 text-gray-500"
-              >
-                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+              {/* CURRENT PASSWORD */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600 font-medium">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCurrent ? 'text' : 'password'}
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showCurrent ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
 
-            {/* New */}
-            <div className="relative">
-              <input
-                type={showNew ? 'text' : 'password'}
-                placeholder="New Password"
-                className="w-full border p-2 rounded pr-10"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-2.5 text-gray-500"
-              >
-                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+              {/* NEW PASSWORD */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600 font-medium">
+                  New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNew ? 'text' : 'password'}
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showNew ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
 
-            {/* Confirm */}
-            <div className="relative">
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                placeholder="Confirm New Password"
-                className="w-full border p-2 rounded pr-10"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-2.5 text-gray-500"
-              >
-                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+              {/* CONFIRM PASSWORD */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600 font-medium">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
+                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="ghost"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Cancel
-              </Button>
-
+              {/* UPDATE BUTTON */}
               <Button
                 onClick={handleChangePassword}
                 disabled={loadingPassword}
+                className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white rounded-xl py-4 text-base font-semibold"
               >
                 {loadingPassword ? 'Updating...' : 'Update Password'}
               </Button>
+
             </div>
+
+            {/* LOGOUT */}
+            <Button
+              onClick={logout}
+              className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-4 text-base font-semibold"
+            >
+              Logout
+            </Button>
+
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
+

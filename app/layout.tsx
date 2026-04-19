@@ -7,8 +7,11 @@ import { ToastProvider } from './context/ToastContext';
 
 import ClientLayout from './ClientLayout';
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Decktago',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

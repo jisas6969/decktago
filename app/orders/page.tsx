@@ -105,9 +105,6 @@ export default function OrdersPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-blue-600">
-                        ${order.total.toFixed(2)}
-                      </p>
                       <p className="text-slate-500 text-sm mt-1">View details →</p>
                     </div>
                   </div>

@@ -53,10 +53,9 @@ export default function CheckoutPage() {
         items: items.map((item) => ({
           id: item.id,
           name: item.name,
-          price: item.price,
           quantity: item.quantity,
+          unit: item.unit || 'box',
         })),
-        total,
         shippingAddress: {
           fullName: formData.fullName,
           email: formData.email,
@@ -273,30 +272,16 @@ export default function CheckoutPage() {
               <div className="space-y-3 mb-6 border-b border-slate-200 pb-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-slate-600">
-                      {item.name} x {item.quantity}
-                    </span>
-                    <span className="font-medium">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
+  <span className="text-slate-600">
+    {item.name} ({item.unit || 'box'})
+  </span>
+  <span className="font-medium">
+  {item.unit === 'kg'
+    ? `${item.quantity} kg`
+    : item.quantity}
+</span>
+</div>
                 ))}
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium">${total.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Shipping</span>
-                  <span className="font-medium">Free</span>
-                </div>
-                <div className="border-t border-slate-200 pt-3 flex justify-between">
-                  <span className="font-semibold">Total</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ${total.toFixed(2)}
-                  </span>
-                </div>
               </div>
             </Card>
           </div>

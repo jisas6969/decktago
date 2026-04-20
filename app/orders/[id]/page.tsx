@@ -222,13 +222,9 @@ export default function OrderDetailPage() {
                     <div>
                       <p>{item.name}</p>
                       <p className="text-sm text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
+  {item.quantity} {item.unit === 'kg' ? 'kg' : item.unit || 'box'}
+</p>
                     </div>
-
-                    <p>
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -241,10 +237,18 @@ export default function OrderDetailPage() {
             <Card className="p-6 sticky top-24">
               <h2 className="font-bold mb-4">Order Summary</h2>
 
-              <p className="text-sm text-gray-500">Total</p>
-              <p className="text-2xl font-bold text-blue-600 mb-4">
-                ${order.total.toFixed(2)}
-              </p>
+              <div className="space-y-2 mb-4">
+  {order.items.map((item) => (
+    <div key={item.id} className="flex justify-between text-sm">
+      <span>
+        {item.name} ({item.unit || 'box'})
+      </span>
+      <span>
+  {item.quantity} {item.unit === 'kg' ? 'kg' : ''}
+</span>
+    </div>
+  ))}
+</div>
 
               <div className="text-sm text-gray-600">
                 <p>{order.shippingAddress.fullName}</p>

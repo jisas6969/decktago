@@ -9,12 +9,11 @@ export interface Order {
   id: string;
   userId: string;
   items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-  total: number;
+  id: string;
+  name: string;
+  quantity: number;
+  unit?: 'box' | 'packs' | 'kg';
+}>
   shippingAddress: {
     fullName: string;
     email: string;

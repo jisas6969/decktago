@@ -18,6 +18,11 @@ export default function HomePage() {
   const { products, loading: productsLoading } = useProducts();
   const { addItem } = useCart();
   const router = useRouter();
+  useEffect(() => {
+  if (!authLoading && !user) {
+    router.push('/login');
+  }
+}, [user, authLoading, router]);
 
   const [fullName, setFullName] = useState('');
 
@@ -80,28 +85,7 @@ export default function HomePage() {
       </div>
     );
   }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Welcome to Our Store</h1>
-            <p className="text-lg text-slate-600 mb-8">Please log in to continue shopping</p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/login">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Log In</Button>
-              </Link>
-              <Link href="/signup">
-                <Button variant="outline">Sign Up</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+if (!user) return null;
   return (
     <div className="min-h-screen bg-slate-50">
 
@@ -176,10 +160,6 @@ export default function HomePage() {
                   </p>
 
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-2xl font-bold text-blue-600">
-                      ₱0.00
-                    </span>
-
                     <span className="text-sm text-slate-500">
                       Available
                     </span>

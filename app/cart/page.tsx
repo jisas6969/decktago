@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import { useState } from 'react';
 
 export default function CartPage() {
   const { user, logout, loading: authLoading } = useAuth();
-  const { items, removeItem, updateQuantity, total } = useCart();
+  const { items, removeItem, updateQuantity, updateUnit} = useCart();
   const router = useRouter();
+  const [tempValues, setTempValues] = useState<Record<string, string>>({});
 
   const handleLogout = async () => {
     await logout();
@@ -79,27 +80,83 @@ export default function CartPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
-                        <p className="text-slate-600 text-sm mb-2">
-                          ${item.price.toFixed(2)} each
-                        </p>
-                        <div className="flex items-center gap-2 mb-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100"
-                          >
-                            +
-                          </button>
-                        </div>
-                        <p className="text-slate-600">
-                          Subtotal: ${(item.price * item.quantity).toFixed(2)}
-                        </p>
+                  
+                        <div className="flex items-center gap-4 mb-2">
+
+  {/* ✅ NEW: Box / Packs */}
+<select
+  value={item.unit || 'box'}
+  onChange={(e) => updateUnit(item.id, e.target.value)}
+  className="border px-2 py-1 rounded"
+>
+  <option value="box">Box</option>
+  <option value="packs">Packs</option>
+  <option value="kg">Kg</option> {/* ✅ NEW */}
+</select>
+
+  {/* ➖ */}
+  <button
+    onClick={() =>
+  updateQuantity(
+    item.id,
+    item.quantity - (item.unit === 'kg' ? 0.5 : 1)
+  )
+}
+    className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100"
+  >
+    -
+  </button>
+
+  {/* quantity */}
+  <input
+  type="number"
+  step={item.unit === 'kg' ? '0.5' : '1'}
+  min="0"
+  value={tempValues[item.id] ?? item.quantity}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // allow empty habang nagtatype
+    setTempValues((prev) => ({
+      ...prev,
+      [item.id]: value,
+    }));
+  }}
+  onBlur={() => {
+    const raw = tempValues[item.id];
+
+    if (raw !== undefined && raw !== '') {
+      const value = Number(raw);
+
+      if (!isNaN(value) && value > 0) {
+        updateQuantity(item.id, value);
+      }
+    }
+
+    // reset temp value
+    setTempValues((prev) => {
+      const copy = { ...prev };
+      delete copy[item.id];
+      return copy;
+    });
+  }}
+  className="w-16 text-center border rounded appearance-none"
+/>
+
+  {/* ➕ */}
+  <button
+    onClick={() =>
+  updateQuantity(
+    item.id,
+    item.quantity + (item.unit === 'kg' ? 0.5 : 1)
+  )
+}
+    className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100"
+  >
+    +
+  </button>
+
+</div>
                       </div>
                       <button
                         onClick={() => removeItem(item.id)}
@@ -117,21 +174,19 @@ export default function CartPage() {
               <Card className="p-6 sticky top-24">
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
                 <div className="space-y-3 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Subtotal</span>
-                    <span className="font-medium">${total.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Shipping</span>
-                    <span className="font-medium">Free</span>
-                  </div>
-                  <div className="border-t border-slate-200 pt-3 flex justify-between">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ${total.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
+
+  {items.map((item) => (
+    <div key={item.id} className="flex justify-between text-sm">
+  <span className="text-slate-600">
+    {item.name} ({item.unit === 'kg' ? 'kg' : item.unit || 'box'})
+  </span>
+  <span className="font-medium">
+    {item.quantity}
+  </span>
+</div>
+  ))}
+
+</div>
                 <Link href="/checkout" className="block">
                   <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                     Proceed to Checkout

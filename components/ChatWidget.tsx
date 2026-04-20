@@ -25,7 +25,7 @@ export default function ChatWidget() {
 
   const chatId = user?.uid;
 
-  // ✅ Create chat document with user info
+  // ✅ Create chat document
   useEffect(() => {
     if (!chatId || !userData) return;
 
@@ -42,7 +42,7 @@ export default function ChatWidget() {
     );
   }, [chatId, userData]);
 
-  // ✅ Listen to messages
+  // ✅ Listen messages
   useEffect(() => {
     if (!chatId) return;
 
@@ -62,6 +62,15 @@ export default function ChatWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // ✅ Auto focus input
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        document.querySelector('input')?.focus();
+      }, 200);
+    }
+  }, [open]);
 
   // ✅ Send message
   const sendMessage = async () => {
@@ -90,71 +99,62 @@ export default function ChatWidget() {
 
       {/* 💬 CHAT BOX */}
       {open && (
-        <div className="
-  fixed 
-  bottom-0 sm:bottom-24 
-  right-0 sm:right-6 
-  w-full sm:w-[420px] 
-  h-[85vh] sm:h-[520px] 
-  bg-white 
-  shadow-2xl 
-  rounded-t-2xl sm:rounded-2xl 
-  flex flex-col 
-  z-50 
-  border 
-  overflow-hidden
-">
+        <div className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-[85vh] sm:h-[520px] px-2 sm:px-0 pb-2 sm:pb-0 z-50">
 
-          {/* HEADER */}
-          <div className="bg-[#2787b4] text-white px-4 py-3 flex justify-between items-center">
-            <span className="font-semibold text-lg">Customer Support</span>
-            <button onClick={() => setOpen(false)}>✕</button>
-          </div>
+          <div className="bg-white shadow-2xl rounded-t-2xl sm:rounded-2xl flex flex-col border overflow-hidden h-full">
 
-          {/* MESSAGES */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`max-w-[75%] ${
-                  m.sender === 'customer' ? 'ml-auto text-right' : ''
-                }`}
-              >
-                {/* 👤 NAME (OUTSIDE BUBBLE) */}
-                <div className="text-[11px] text-gray-500 mb-1 truncate">
-                  {m.fullName} {m.companyName && `• ${m.companyName}`}
-                </div>
+            {/* HEADER */}
+            <div className="bg-[#2787b4] text-white px-4 py-3 flex justify-between items-center">
+              <span className="font-semibold text-lg">Customer Support</span>
+              <button onClick={() => setOpen(false)}>✕</button>
+            </div>
 
-                {/* 💬 MESSAGE BUBBLE */}
+            {/* MESSAGES */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+              {messages.map((m, i) => (
                 <div
-                  className={`px-4 py-2 rounded-2xl text-sm w-fit break-words ${
-                    m.sender === 'customer'
-                      ? 'bg-[#2787b4] text-white ml-auto'
-                      : 'bg-gray-200 text-gray-800'
+                  key={i}
+                  className={`max-w-[85%] sm:max-w-[75%] ${
+                    m.sender === 'customer' ? 'ml-auto text-right' : ''
                   }`}
                 >
-                  {m.text}
-                </div>
-              </div>
-            ))}
-            <div ref={bottomRef} />
-          </div>
+                  {/* NAME */}
+                  <div className="text-[11px] text-gray-500 mb-1 truncate">
+                    {m.fullName} {m.companyName && `• ${m.companyName}`}
+                  </div>
 
-          {/* INPUT */}
-          <div className="p-3 border-t flex items-center gap-2 bg-white">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
-              placeholder="Type your message..."
-            />
-            <button
-              onClick={sendMessage}
-              className="bg-[#2787b4] text-white px-4 py-2 rounded-full text-sm hover:bg-[#1f6f94]"
-            >
-              Send
-            </button>
+                  {/* MESSAGE */}
+                  <div
+                    className={`px-4 py-2 rounded-2xl text-sm w-fit break-words ${
+                      m.sender === 'customer'
+                        ? 'bg-[#2787b4] text-white ml-auto'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
+
+            {/* INPUT */}
+            <div className="p-2 sm:p-3 border-t flex items-center gap-2 bg-white">
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
+                placeholder="Type your message..."
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-[#2787b4] text-white px-3 sm:px-4 py-2 rounded-full text-sm hover:bg-[#1f6f94]"
+              >
+                Send
+              </button>
+            </div>
+
           </div>
         </div>
       )}

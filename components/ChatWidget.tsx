@@ -90,7 +90,20 @@ export default function ChatWidget() {
 
       {/* 💬 CHAT BOX */}
       {open && (
-        <div className="fixed bottom-24 right-6 w-[380px] sm:w-[420px] h-[520px] bg-white shadow-2xl rounded-2xl flex flex-col z-50 border overflow-hidden">
+        <div className="
+  fixed 
+  bottom-0 sm:bottom-24 
+  right-0 sm:right-6 
+  w-full sm:w-[420px] 
+  h-[85vh] sm:h-[520px] 
+  bg-white 
+  shadow-2xl 
+  rounded-t-2xl sm:rounded-2xl 
+  flex flex-col 
+  z-50 
+  border 
+  overflow-hidden
+">
 
           {/* HEADER */}
           <div className="bg-[#2787b4] text-white px-4 py-3 flex justify-between items-center">

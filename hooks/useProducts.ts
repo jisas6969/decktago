@@ -8,7 +8,7 @@ export interface Product {
   id: string;
   name: string;
   type: string;
-  defaultWeight: number | null;
+  category: string; // ✅ NEW FIELD
   imageUrl?: string | null;
 }
 
@@ -28,8 +28,8 @@ export function useProducts() {
             id: doc.id,
             name: data.name || '',
             type: data.type || '',
-            defaultWeight: data.defaultWeight ?? null, // ✅ FIXED
-            imageUrl: data.imageUrl ?? null, // ✅ NEW (for Cloudinary)
+            category: data.category || '', // ✅ replaced
+            imageUrl: data.imageUrl ?? null,
           };
         });
 

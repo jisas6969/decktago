@@ -188,9 +188,9 @@ export default function CartPage() {
 
 </div>
                 <Link href="/checkout" className="block">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Proceed to Checkout
-                  </Button>
+                  <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
+  Proceed to Checkout
+</Button>
                 </Link>
                 <Link href="/" className="block mt-2">
                   <Button variant="outline" className="w-full">

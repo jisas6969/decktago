@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, MoreVertical, X } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -11,6 +11,8 @@ import {
   query,
   doc,
   setDoc,
+  updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -21,13 +23,15 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState('');
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const chatId = user?.uid;
 
-  // ✅ Create chat document
   useEffect(() => {
-    if (!chatId || !userData) return;
+    if (!user?.uid || !userData) return;
 
     setDoc(
       doc(db, 'chats', chatId),
@@ -42,39 +46,43 @@ export default function ChatWidget() {
     );
   }, [chatId, userData]);
 
-  // ✅ Listen messages
   useEffect(() => {
-    if (!chatId) return;
+    if (!user?.uid) return;
 
     const q = query(
-      collection(db, 'chats', chatId, 'messages'),
+      collection(db, 'chats', user.uid, 'messages'),
       orderBy('createdAt')
     );
 
     const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => d.data()));
+      setMessages(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }))
+      );
     });
 
     return () => unsub();
-  }, [chatId]);
+  }, [user]);
 
-  // ✅ Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ✅ Auto focus input
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => {
-        document.querySelector('input')?.focus();
-      }, 200);
-    }
-  }, [open]);
-
-  // ✅ Send message
   const sendMessage = async () => {
     if (!text.trim() || !chatId) return;
+
+    if (editingId) {
+      await updateDoc(
+        doc(db, 'chats', chatId, 'messages', editingId),
+        { text }
+      );
+
+      setEditingId(null);
+      setText('');
+      return;
+    }
 
     await addDoc(collection(db, 'chats', chatId, 'messages'), {
       text,
@@ -89,19 +97,16 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* 🔵 FLOATING BUTTON */}
       <div
-        onClick={() => setOpen(!open)}
+        onClick={() => user && setOpen(!open)}
         className="fixed bottom-6 right-6 bg-[#2787b4] text-white p-5 rounded-full shadow-xl cursor-pointer hover:bg-[#1f6f94] z-50 transition"
       >
         <MessageCircle className="w-7 h-7" />
       </div>
 
-      {/* 💬 CHAT BOX */}
-      {open && (
-        <div className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-[85vh] sm:h-[520px] px-2 sm:px-0 pb-2 sm:pb-0 z-50">
-
-          <div className="bg-white shadow-2xl rounded-t-2xl sm:rounded-2xl flex flex-col border overflow-hidden h-full">
+      {user && open && (
+        <div className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-[85vh] sm:h-[520px] z-50">
+          <div className="bg-white shadow-2xl rounded-2xl flex flex-col border overflow-hidden h-full">
 
             {/* HEADER */}
             <div className="bg-[#2787b4] text-white px-4 py-3 flex justify-between items-center">
@@ -110,49 +115,155 @@ export default function ChatWidget() {
             </div>
 
             {/* MESSAGES */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
-              {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`max-w-[85%] sm:max-w-[75%] ${
-                    m.sender === 'customer' ? 'ml-auto text-right' : ''
-                  }`}
-                >
-                  {/* NAME */}
-                  <div className="text-[11px] text-gray-500 mb-1 truncate">
-                    {m.fullName} {m.companyName && `• ${m.companyName}`}
-                  </div>
+            <div className="relative flex-1">
 
-                  {/* MESSAGE */}
-                  <div
-                    className={`px-4 py-2 rounded-2xl text-sm w-fit break-words ${
-                      m.sender === 'customer'
-                        ? 'bg-[#2787b4] text-white ml-auto'
-                        : 'bg-gray-200 text-gray-800'
-                    }`}
-                  >
-                    {m.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={bottomRef} />
+              {editingId && (
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] z-10" />
+              )}
+
+              <div
+                className={`p-4 overflow-y-auto space-y-4 bg-gray-50 h-full ${
+                  editingId ? 'pointer-events-none select-none' : ''
+                }`}
+              >
+                {messages.map((m, index) => {
+                  const isCustomer = m.sender === 'customer';
+                  const isTopMessage = index < 2;
+
+                  const time = m.createdAt?.toDate
+  ? m.createdAt.toDate().toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  : '';
+
+                  return (
+                    <div key={m.id}>
+                      {/* 🕒 CENTERED TIMESTAMP */}
+                      <div className="flex justify-center my-2">
+  <div className="text-[11px] text-gray-400">
+    {time}
+  </div>
+</div>
+
+                      {/* MESSAGE */}
+                      <div
+                        className={`group flex ${
+                          isCustomer ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        {isCustomer && (
+                          <div className="relative flex items-center -mr-1 translate-y-[6px]">
+                            <button
+                              onClick={() =>
+                                setMenuOpenId(
+                                  menuOpenId === m.id ? null : m.id
+                                )
+                              }
+                              className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-gray-700 flex items-center justify-center w-8 h-8"
+                            >
+                              <MoreVertical size={24} />
+                            </button>
+
+                            {menuOpenId === m.id && (
+                              <div
+                                className={`absolute left-0 ${
+                                  isTopMessage ? 'top-8' : 'bottom-8'
+                                } bg-white border rounded shadow text-sm z-10`}
+                              >
+                                <button
+                                  onClick={() => {
+                                    setEditingId(m.id);
+                                    setText(m.text);
+                                    setMenuOpenId(null);
+                                  }}
+                                  className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  onClick={async () => {
+                                    await deleteDoc(
+                                      doc(
+                                        db,
+                                        'chats',
+                                        chatId!,
+                                        'messages',
+                                        m.id
+                                      )
+                                    );
+                                    setMenuOpenId(null);
+                                  }}
+                                  className="block px-4 py-2 hover:bg-red-100 text-red-600 w-full text-left"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="max-w-[75%] flex flex-col items-end">
+                          <div className="text-[11px] text-gray-500 mb-1">
+                            {m.fullName} {m.companyName && `• ${m.companyName}`}
+                          </div>
+
+                          <div
+  className={`inline-block w-fit px-3 py-1.5 rounded-2xl text-sm break-words break-all ${
+                              isCustomer
+                                ? 'bg-[#2787b4] text-white ml-auto'
+                                : 'bg-gray-200 text-gray-800'
+                            }`}
+                          >
+                            {m.text}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={bottomRef} />
+              </div>
             </div>
 
             {/* INPUT */}
-            <div className="p-2 sm:p-3 border-t flex items-center gap-2 bg-white">
-              <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
-                placeholder="Type your message..."
-              />
-              <button
-                onClick={sendMessage}
-                className="bg-[#2787b4] text-white px-3 sm:px-4 py-2 rounded-full text-sm hover:bg-[#1f6f94]"
-              >
-                Send
-              </button>
+            <div className="p-2 border-t bg-white">
+              {editingId && (
+                <div className="text-xs text-gray-500 px-2 mb-1">
+                  Editing message...
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                  className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
+                  placeholder="Type your message..."
+                />
+
+                {editingId && (
+                  <button
+                    onClick={() => {
+                      setEditingId(null);
+                      setText('');
+                    }}
+                    className="text-gray-400 hover:text-red-500 p-2"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+
+                <button
+                  onClick={sendMessage}
+                  className="bg-[#2787b4] text-white px-4 py-2 rounded-full text-sm hover:bg-[#1f6f94]"
+                >
+                  {editingId ? 'Update' : 'Send'}
+                </button>
+              </div>
             </div>
 
           </div>

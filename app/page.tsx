@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import ProductImage from '@/components/ProductImage';
-
+import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { CheckCircle } from "lucide-react";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -48,14 +49,31 @@ export default function HomePage() {
   }, [user]);
 
   const handleAddToCart = (product: any) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      quantity: 1,
-      image: product.imageUrl,
-      unit: 'box',
-    });
-  };
+  addItem({
+    id: product.id,
+    name: product.name,
+    quantity: 1,
+    image: product.imageUrl,
+    unit: 'box',
+  });
+
+    toast({
+  duration: 1500,
+  description: (
+    <div className="flex flex-col items-center gap-2">
+
+      {/* CHECK CIRCLE ICON */}
+      <CheckCircle className="w-10 h-10 text-[#2787b4]" />
+
+      {/* TEXT */}
+      <span className="text-sm font-medium text-white">
+        Added to cart
+      </span>
+
+    </div>
+  ),
+});
+};
 
   // 🔥 GROUP DATA
   const categories = ['All', ...new Set(products.map(p => p.category))];

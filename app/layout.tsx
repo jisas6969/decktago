@@ -3,10 +3,9 @@ import './globals.css';
 
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { ToastProvider } from './context/ToastContext';
 import ChatWidget from '@/components/ChatWidget';
 import ClientLayout from './ClientLayout';
-
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata = {
   title: 'Decktago',
@@ -25,13 +24,14 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <CartProvider>
-            <ToastProvider>
 
-              {/* ✅ NASA LOOB NA NG PROVIDERS */}
-              <ClientLayout>{children}</ClientLayout>
-              <ChatWidget /> 
+            <ClientLayout>{children}</ClientLayout>
 
-            </ToastProvider>
+            {/* ✅ REQUIRED for toast */}
+            <Toaster />
+
+            <ChatWidget /> 
+
           </CartProvider>
         </AuthProvider>
       </body>

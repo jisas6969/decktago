@@ -27,7 +27,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { signup } = useAuth();
+  const { signup, logout } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +42,8 @@ export default function SignupPage() {
 
     try {
       await signup(email, password, fullName, phoneNumber, companyName);
-      router.push('/');
+      await logout();
+      router.push('/login');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {

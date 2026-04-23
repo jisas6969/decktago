@@ -26,6 +26,7 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     zipCode: '',
+    paymentMethod: 'Cash on Delivery', // ✅ added
   });
 
   const handleLogout = async () => {
@@ -47,7 +48,6 @@ export default function CheckoutPage() {
       if (!user) throw new Error('User not found');
       if (items.length === 0) throw new Error('Cart is empty');
 
-      // Create order in Firestore
       const order = {
         userId: user.uid,
         items: items.map((item) => ({
@@ -65,19 +65,18 @@ export default function CheckoutPage() {
           state: formData.state,
           zipCode: formData.zipCode,
         },
+        paymentMethod: formData.paymentMethod, // ✅ added
         status: 'Pending',
         createdAt: new Date(),
       };
 
       const docRef = await addDoc(collection(db, 'orders'), order);
 
-      // Update user data with address
       await updateUserData({
         address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
         phone: formData.phone,
       });
 
-      // Clear cart and redirect
       clearCart();
       router.push(`/orders/${docRef.id}`);
     } catch (err: any) {
@@ -248,6 +247,39 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* ✅ MODE OF PAYMENT */}
+                <div className="bg-gray-100 px-4 py-3 rounded-lg flex justify-between items-center">
+  <div>
+    <p className="text-sm text-slate-600">Payment Method</p>
+  </div>
+
+  <div className="flex items-center gap-4">
+    <span className="text-sm font-medium">
+      {formData.paymentMethod}
+    </span>
+
+    <button
+      type="button"
+      onClick={() => {
+        const next =
+          formData.paymentMethod === 'Cash on Delivery'
+            ? 'GCash'
+            : formData.paymentMethod === 'GCash'
+            ? 'Bank Transfer'
+            : 'Cash on Delivery';
+
+        setFormData((prev) => ({
+          ...prev,
+          paymentMethod: next,
+        }));
+      }}
+      className="text-blue-600 text-sm font-medium hover:underline"
+    >
+      CHANGE
+    </button>
+  </div>
+</div>
+
                 <div className="flex gap-4">
                   <Button
                     type="submit"
@@ -269,18 +301,25 @@ export default function CheckoutPage() {
           <div>
             <Card className="p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+              {/* ✅ DISPLAY PAYMENT */}
+              <div className="flex justify-between text-sm mb-4">
+                <span className="text-slate-600">Payment Method</span>
+                <span className="font-medium">{formData.paymentMethod}</span>
+              </div>
+
               <div className="space-y-3 mb-6 border-b border-slate-200 pb-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-  <span className="text-slate-600">
-    {item.name} ({item.unit || 'box'})
-  </span>
-  <span className="font-medium">
-  {item.unit === 'kg'
-    ? `${item.quantity} kg`
-    : item.quantity}
-</span>
-</div>
+                    <span className="text-slate-600">
+                      {item.name} ({item.unit || 'box'})
+                    </span>
+                    <span className="font-medium">
+                      {item.unit === 'kg'
+                        ? `${item.quantity} kg`
+                        : item.quantity}
+                    </span>
+                  </div>
                 ))}
               </div>
             </Card>

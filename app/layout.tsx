@@ -8,7 +8,7 @@ import ClientLayout from './ClientLayout';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata = {
-  title: 'Decktago',
+  title: 'DecktaGo',
   icons: {
     icon: '/logo.png',
   },

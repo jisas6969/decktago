@@ -27,7 +27,7 @@ export default function ChatWidget() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
+  const [unreadCount, setUnreadCount] = useState(0);
   const chatId = user?.uid;
 
   useEffect(() => {
@@ -61,13 +61,20 @@ export default function ChatWidget() {
     );
 
     const unsub = onSnapshot(q, (snap) => {
-      setMessages(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }))
-      );
-    });
+  const newMessages = snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  }));
+
+  const unread = newMessages.filter(
+  (m) =>
+    m.sender === 'sales' && // 🔴 ONLY SALES
+    !m.isRead
+).length;
+
+  setUnreadCount(unread);
+  setMessages(newMessages);
+});
 
     return () => unsub();
   }, [user]);
@@ -75,6 +82,22 @@ export default function ChatWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  const markAsRead = async () => {
+  if (!chatId) return;
+
+  const unreadMessages = messages.filter(
+  (m) =>
+    m.sender === 'sales' &&
+    !m.isRead
+);
+
+  for (const m of unreadMessages) {
+    await updateDoc(
+      doc(db, 'chats', chatId, 'messages', m.id),
+      { isRead: true }
+    );
+  }
+};
 
   const sendMessage = async () => {
   if (!text.trim() || !chatId) return;
@@ -88,6 +111,7 @@ export default function ChatWidget() {
     setText('');
     return;
   }
+  
 
   // 🔴 SHOW CHAT AGAIN SA SALES
   await setDoc(
@@ -99,25 +123,41 @@ export default function ChatWidget() {
     { merge: true }
   );
 
-  await addDoc(collection(db, 'chats', chatId, 'messages'), {
-    text,
-    sender: userData?.role?.toLowerCase() || 'customer',
-    fullName: userData?.fullName || 'Unknown',
-    companyName: userData?.companyName || '',
-    createdAt: new Date(),
-  });
+ await addDoc(collection(db, 'chats', chatId, 'messages'), {
+  text,
+  sender: userData?.role?.toLowerCase() || 'customer',
+  fullName: userData?.fullName || 'Unknown',
+  companyName: userData?.companyName || '',
+  createdAt: new Date(),
+  isRead: false, // 🔴 ADD THIS
+});
 
   setText('');
 };
 
   return (
     <>
-      <div
-        onClick={() => user && setOpen(!open)}
-        className="fixed bottom-6 right-6 bg-[#2787b4] text-white p-5 rounded-full shadow-xl cursor-pointer hover:bg-[#1f6f94] z-50 transition"
-      >
-        <MessageCircle className="w-7 h-7" />
-      </div>
+     <div
+  onClick={() => {
+    if (user) {
+      setOpen(!open);
+      if (!open) markAsRead();
+    }
+  }}
+  className="fixed bottom-6 right-6 z-50"
+>
+  {/* 🔵 BUTTON (unchanged mo) */}
+  <div className="bg-[#2787b4] text-white p-5 rounded-full shadow-xl cursor-pointer hover:bg-[#1f6f94] transition">
+    <MessageCircle className="w-7 h-7" />
+  </div>
+
+  {/* 🔴 BADGE (separate, hindi nakaka-apekto sa size) */}
+  {unreadCount > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+      {unreadCount}
+    </span>
+  )}
+</div>
 
       {user && open && (
         <div className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-[85vh] sm:h-[520px] z-50">

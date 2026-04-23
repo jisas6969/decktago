@@ -19,7 +19,7 @@ interface NavigationProps {
 
 export default function Navigation({ user, onLogout }: NavigationProps) {
   const { items } = useCart();
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = items.length;
 
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);

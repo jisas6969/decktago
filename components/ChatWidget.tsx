@@ -1,4 +1,5 @@
 'use client';
+import { getAutoReply, getWelcomeMessage } from '@/lib/chatbot';
 import { getDoc } from "firebase/firestore"
 import { useEffect, useState, useRef } from 'react';
 import { MessageCircle, MoreVertical, X } from 'lucide-react';
@@ -13,6 +14,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  increment,
 } from 'firebase/firestore';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -29,7 +31,7 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatId = user?.uid;
-
+  const replyTimeout = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
   if (!user?.uid || !userData) return;
 
@@ -60,11 +62,22 @@ export default function ChatWidget() {
       orderBy('createdAt')
     );
 
-    const unsub = onSnapshot(q, (snap) => {
+    const unsub = onSnapshot(q, async (snap) => {
   const newMessages = snap.docs.map((d) => ({
     id: d.id,
     ...d.data(),
   }));
+  const hasSalesMessage = newMessages.some(m => m.sender === 'sales');
+
+if (!hasSalesMessage && chatId && newMessages.length === 0) {
+  await addDoc(collection(db, 'chats', chatId, 'messages'), {
+    text: getWelcomeMessage(),
+    sender: 'sales',
+    createdAt: new Date(),
+    isRead: false,
+  });
+}
+  
 
   const unread = newMessages.filter(
   (m) =>
@@ -103,14 +116,14 @@ export default function ChatWidget() {
   if (!text.trim() || !chatId) return;
 
   if (editingId) {
-    await updateDoc(
-      doc(db, 'chats', chatId, 'messages', editingId),
-      { text }
-    );
-    setEditingId(null);
-    setText('');
-    return;
-  }
+  await updateDoc(
+    doc(db, 'chats', chatId, 'messages', editingId),
+    { text }
+  );
+  setEditingId(null);
+  setText('');
+  return;
+}
   
 
   // 🔴 SHOW CHAT AGAIN SA SALES
@@ -131,8 +144,32 @@ export default function ChatWidget() {
   createdAt: new Date(),
   isRead: false, // 🔴 ADD THIS
 });
+  await updateDoc(doc(db, 'chats', chatId), {
+    lastMessage: text,
+    lastTime: new Date(),
+    lastSender: 'customer',
+    unreadCount_sales: increment(1),
+});
+const userMessage = text;
 
-  setText('');
+setText('');
+
+// clear previous timer
+if (replyTimeout.current) {
+  clearTimeout(replyTimeout.current);
+}
+
+// set new timer
+replyTimeout.current = setTimeout(async () => {
+  const reply = getAutoReply(userMessage);
+
+  await addDoc(collection(db, 'chats', chatId, 'messages'), {
+    text: reply,
+    sender: 'sales',
+    createdAt: new Date(),
+    isRead: false,
+  });
+}, 3000); // 3 seconds delay
 };
 
   return (
@@ -182,13 +219,25 @@ export default function ChatWidget() {
   }`}
 >
                 {messages.map((m, index) => {
+
   const isCustomer = m.sender === 'customer';
   const isTopMessage = index < 2;
 
   const currentTime = m.createdAt?.seconds
     ? m.createdAt.seconds * 1000
     : 0;
+  const prev = messages[index - 1];
 
+const prevTime = prev?.createdAt?.seconds
+  ? prev.createdAt.seconds * 1000
+  : 0;
+
+const currTime = m.createdAt?.seconds
+  ? m.createdAt.seconds * 1000
+  : 0;
+
+const showTime =
+  index === 0 || (currTime - prevTime) > 5 * 60 * 1000;                
   const isEditable =
     Date.now() - currentTime <= 15 * 60 * 1000;
 
@@ -204,11 +253,13 @@ export default function ChatWidget() {
     <div key={m.id}>
       
       {/* 🕒 TIMESTAMP */}
-      <div className="flex justify-center my-2">
-        <div className="text-[11px] text-gray-400">
-          {time}
-        </div>
-      </div>
+      {showTime && (
+  <div className="flex justify-center my-2">
+    <div className="text-[11px] text-gray-400">
+      {time}
+    </div>
+  </div>
+)}
 
       {/* 💬 ROW */}
       <div

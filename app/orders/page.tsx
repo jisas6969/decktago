@@ -8,11 +8,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const statusColors: Record<string, string> = {
-  Pending: 'bg-yellow-100 text-yellow-800',
-  'In Production': 'bg-blue-100 text-blue-800',
-  'In Transit': 'bg-purple-100 text-purple-800',
-  'Out for Delivery': 'bg-orange-100 text-orange-800',
-  Delivered: 'bg-green-100 text-green-800',
+  Pending: 'bg-[#e6f2f8] text-[#2787b4]',
+  'In Production': 'bg-[#e6f2f8] text-[#2787b4]',
+  'In Transit': 'bg-[#e6f2f8] text-[#2787b4]',
+  'Out for Delivery': 'bg-[#e6f2f8] text-[#2787b4]',
+  Delivered: 'bg-[#e6f2f8] text-[#2787b4]',
 };
 
 export default function OrdersPage() {
@@ -29,7 +29,7 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2787b4] mx-auto mb-4"></div>
           <p className="text-slate-600">Loading...</p>
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function OrdersPage() {
             <h1 className="text-4xl font-bold mb-4">Please Log In</h1>
             <p className="text-lg text-slate-600 mb-8">You need to log in to view your orders</p>
             <Link href="/login">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Log In</Button>
+              <Button className="bg-[#2787b4] hover:bg-[#1f6f94] text-white">Log In</Button>
             </Link>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function OrdersPage() {
             <p className="text-slate-600 text-lg mb-4">No orders yet</p>
             <p className="text-slate-500 mb-6">Start shopping to place your first order</p>
             <Link href="/">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-[#2787b4] hover:bg-[#1f6f94] text-white">
                 Continue Shopping
               </Button>
             </Link>

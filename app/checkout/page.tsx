@@ -1,71 +1,131 @@
 'use client';
-
-import { useState } from 'react';
+import { MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+  getDoc,
+} from 'firebase/firestore';
 
 export default function CheckoutPage() {
-  const { user, logout, loading: authLoading, updateUserData } = useAuth();
-  const { items, total, clearCart } = useCart();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { user, updateUserData } = useAuth();
+  const { items, clearCart } = useCart();
   const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showAddressList, setShowAddressList] = useState(false);
+
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
     phone: '',
-    address: '',
+    province: '',
     city: '',
-    state: '',
+    barangay: '',
     zipCode: '',
-    paymentMethod: 'Cash on Delivery', // ✅ added
   });
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // ✅ LOAD ADDRESSES
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user?.uid) return;
+
+      const ref = doc(db, 'users', user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists() && snap.data().addresses) {
+        const data = snap.data().addresses;
+
+        setAddresses(data);
+
+        const def = data.find((a: any) => a.isDefault);
+        const selected = def || data[0];
+
+        setSelectedAddress(selected);
+
+        setFormData((prev) => ({
+          ...prev,
+          ...selected,
+        }));
+      }
+    };
+
+    fetchAddresses();
+  }, [user]);
+
+  // ✅ SAVE / EDIT ADDRESS
+  const handleSaveAddress = async () => {
+    if (!user) return;
+
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+
+    let existing: any[] = [];
+
+    if (snap.exists() && snap.data().addresses) {
+      existing = snap.data().addresses;
+    }
+
+    let updated;
+
+    if (isEditing && editingId) {
+      updated = existing.map((addr) =>
+        addr.id === editingId ? { ...addr, ...formData } : addr
+      );
+    } else {
+      const newAddress = {
+        id: Date.now().toString(),
+        fullName: formData.fullName,
+        phone: formData.phone,
+        province: formData.province,
+        city: formData.city,
+        barangay: formData.barangay,
+        zipCode: formData.zipCode,
+        isDefault: existing.length === 0,
+      };
+
+      updated = [...existing, newAddress];
+      setSelectedAddress(newAddress);
+    }
+
+    await setDoc(ref, { addresses: updated }, { merge: true });
+
+    setAddresses(updated);
+    setIsEditing(false);
+    setEditingId(null);
+    setShowAddressModal(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  // ✅ PLACE ORDER
+  const handleSubmit = async () => {
+    if (!selectedAddress) return;
+
     setLoading(true);
 
     try {
-      if (!user) throw new Error('User not found');
-      if (items.length === 0) throw new Error('Cart is empty');
-
       const order = {
-        userId: user.uid,
-        items: items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit || 'box',
-        })),
-        shippingAddress: {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-        },
-        paymentMethod: formData.paymentMethod, // ✅ added
+        userId: user?.uid,
+        items,
+        shippingAddress: selectedAddress,
         status: 'Pending',
         createdAt: new Date(),
       };
@@ -73,259 +133,307 @@ export default function CheckoutPage() {
       const docRef = await addDoc(collection(db, 'orders'), order);
 
       await updateUserData({
-        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
-        phone: formData.phone,
+        address: `${selectedAddress.barangay}, ${selectedAddress.city}, ${selectedAddress.province}`,
+        phone: selectedAddress.phone,
       });
 
       clearCart();
       router.push(`/orders/${docRef.id}`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to place order');
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">Please Log In</h1>
-            <p className="text-lg text-slate-600 mb-8">You need to log in to checkout</p>
-            <Link href="/login">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Log In</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
-            <Link href="/">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                Continue Shopping
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 py-12 space-y-4">
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-6">Shipping Address</h2>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Full Name
-                    </label>
-                    <Input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Email
-                    </label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone
-                  </label>
-                  <Input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Address
-                  </label>
-                  <Input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      City
-                    </label>
-                    <Input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      State
-                    </label>
-                    <Input
-                      type="text"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Zip Code
-                    </label>
-                    <Input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-
-                {/* ✅ MODE OF PAYMENT */}
-                <div className="bg-gray-100 px-4 py-3 rounded-lg flex justify-between items-center">
-  <div>
-    <p className="text-sm text-slate-600">Payment Method</p>
-  </div>
-
-  <div className="flex items-center gap-4">
-    <span className="text-sm font-medium">
-      {formData.paymentMethod}
-    </span>
-
-    <button
-      type="button"
-      onClick={() => {
-        const next =
-          formData.paymentMethod === 'Cash on Delivery'
-            ? 'GCash'
-            : formData.paymentMethod === 'GCash'
-            ? 'Bank Transfer'
-            : 'Cash on Delivery';
-
-        setFormData((prev) => ({
-          ...prev,
-          paymentMethod: next,
-        }));
-      }}
-      className="text-blue-600 text-sm font-medium hover:underline"
-    >
-      CHANGE
-    </button>
-  </div>
+        <div className="mb-8">
+  <h1 className="text-3xl font-bold mb-2">Checkout</h1>
+  <p className="text-slate-600">
+    Review your order and complete your purchase
+  </p>
 </div>
 
-                <div className="flex gap-4">
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={loading}
-                  >
-                    {loading ? 'Placing Order...' : 'Place Order'}
-                  </Button>
-                  <Link href="/cart" className="flex-1">
-                    <Button variant="outline" className="w-full" disabled={loading}>
-                      Back to Cart
-                    </Button>
-                  </Link>
-                </div>
-              </form>
-            </Card>
-          </div>
+        {/* ================= DELIVERY ADDRESS ================= */}
+        <Card className="p-5">
+          <h2 className="flex items-center gap-2 font-semibold mb-3 text-[#2787b4]">
 
-          <div>
-            <Card className="p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+  <MapPin className="w-5 h-5" />
 
-              {/* ✅ DISPLAY PAYMENT */}
-              <div className="flex justify-between text-sm mb-4">
-                <span className="text-slate-600">Payment Method</span>
-                <span className="font-medium">{formData.paymentMethod}</span>
+  Delivery Address
+
+</h2>
+
+          {!formData.barangay ? (
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-500">
+                No address yet. Please add one.
+              </p>
+
+              <button
+                onClick={() => setShowAddressModal(true)}
+                className="text-[#2787b4] text-sm font-medium hover:underline"
+              >
+                Add Address
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 text-sm">
+
+  {/* LEFT SIDE */}
+  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+
+    <span className="font-semibold">
+      {formData.fullName} ({formData.phone})
+    </span>
+
+    <span className="text-gray-600">
+      {formData.barangay}, {formData.city}, {formData.province} {formData.zipCode}
+    </span>
+
+    <span className="text-xs bg-red-100 text-red-500 px-2 py-1 rounded w-fit">
+      Default
+    </span>
+
+  </div>
+
+  {/* RIGHT SIDE */}
+  <button
+    onClick={() => setShowAddressList(true)}
+    className="text-[#2787b4] text-sm font-medium self-start sm:self-auto"
+  >
+    Change
+  </button>
+
+</div>
+          )}
+        </Card>
+
+        {/* ================= PRODUCTS ================= */}
+        <Card className="p-5">
+          <h2 className="font-bold mb-4">Products Ordered</h2>
+
+          {items.map((item: any) => (
+            <div key={item.id} className="flex gap-3 mb-3">
+              <img
+                src={item.image || '/placeholder.png'}
+                className="w-14 h-14 object-cover border rounded"
+              />
+
+              <div className="flex-1">
+                <p className="text-sm">{item.name}</p>
+                <p className="text-xs text-gray-500">{item.unit}</p>
               </div>
 
-              <div className="space-y-3 mb-6 border-b border-slate-200 pb-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-slate-600">
-                      {item.name} ({item.unit || 'box'})
-                    </span>
-                    <span className="font-medium">
-                      {item.unit === 'kg'
-                        ? `${item.quantity} kg`
-                        : item.quantity}
-                    </span>
+              <div>{item.quantity}</div>
+              
+              
+            </div>
+            
+          ))}
+          
+        </Card>
+
+
+        {/* ================= PLACE ORDER ================= */}
+        {/* 🔥 BUTTONS */}
+<div className="mt-6 pt-4 flex gap-3">
+
+  {/* PLACE ORDER */}
+  <Button
+    onClick={handleSubmit}
+    disabled={!selectedAddress || loading}
+    className="flex-1 bg-[#2787b4] text-white"
+  >
+    {loading ? 'Placing Order...' : 'Place Order'}
+  </Button>
+
+  {/* BACK TO CART */}
+  <Button
+    onClick={() => router.push('/cart')}
+    variant="outline"
+    className="flex-1"
+  >
+    Back to Cart
+  </Button>
+
+</div>
+</div>
+
+      {/* ================= ADDRESS LIST ================= */}
+      {showAddressList && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    
+    <div className="bg-white w-full max-w-2xl rounded-lg p-6 relative">
+
+      {/* ❌ CLOSE BUTTON */}
+      <button
+        onClick={() => setShowAddressList(false)}
+        className="absolute top-4 right-4 text-gray-500 hover:text-black text-lg"
+      >
+        ✕
+      </button>
+
+            <h2 className="text-lg font-semibold mb-4">My Address</h2>
+
+            {addresses.map((addr) => (
+              <div key={addr.id} className="flex gap-3 border-b pb-3">
+
+                <input
+                  type="radio"
+                  checked={selectedAddress?.id === addr.id}
+                  onChange={() => {
+                    setSelectedAddress(addr);
+                    setFormData((prev) => ({ ...prev, ...addr }));
+                    setShowAddressList(false);
+                  }}
+                />
+
+                <div className="flex-1 flex justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {addr.fullName} ({addr.phone})
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      {addr.barangay}, {addr.city}, {addr.province}
+                    </p>
+
+                    {addr.isDefault && (
+                      <span className="text-xs text-red-500 border px-1">
+                        Default
+                      </span>
+                    )}
                   </div>
-                ))}
+
+                  <button
+                    onClick={() => {
+                      setFormData(addr);
+                      setEditingId(addr.id);
+                      setIsEditing(true);
+                      setShowAddressList(false);
+                      setShowAddressModal(true);
+                    }}
+                    className="text-[#2787b4] text-sm font-medium "
+                  >
+                    Edit
+                  </button>
+                </div>
+
               </div>
-            </Card>
+            ))}
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => {
+                  setShowAddressList(false);
+                  setShowAddressModal(true);
+                }}
+                className="bg-[#2787b4] text-white px-4 py-2 rounded"
+              >
+                + Add New Address
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ================= ADD / EDIT MODAL ================= */}
+      {showAddressModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+          <div className="bg-white w-full max-w-2xl rounded-lg p-6">
+
+            <h2 className="text-lg font-semibold mb-6">
+              {isEditing ? 'Edit Address' : 'New Address'}
+            </h2>
+
+            <div className="space-y-4">
+
+  {/* FULL NAME + PHONE */}
+  <div className="grid grid-cols-2 gap-4">
+
+    <div>
+      <label className="text-sm text-gray-600">Full Name</label>
+      <Input
+        name="fullName"
+        value={formData.fullName}
+        onChange={handleChange}
+      />
+    </div>
+
+    <div>
+      <label className="text-sm text-gray-600">Phone</label>
+      <Input
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+      />
+    </div>
+
+  </div>
+
+  {/* ADDRESS */}
+  <div>
+    <label className="text-sm text-gray-600">Province</label>
+    <Input
+      name="province"
+      value={formData.province}
+      onChange={handleChange}
+    />
+  </div>
+
+  <div>
+    <label className="text-sm text-gray-600">City</label>
+    <Input
+      name="city"
+      value={formData.city}
+      onChange={handleChange}
+    />
+  </div>
+
+  <div>
+    <label className="text-sm text-gray-600">Barangay</label>
+    <Input
+      name="barangay"
+      value={formData.barangay}
+      onChange={handleChange}
+    />
+  </div>
+
+  <div>
+    <label className="text-sm text-gray-600">Zip Code</label>
+    <Input
+      name="zipCode"
+      value={formData.zipCode}
+      onChange={handleChange}
+    />
+  </div>
+
+</div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowAddressModal(false)}>
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSaveAddress}
+                className="bg-[#2787b4] text-white px-6 py-2 rounded"
+              >
+                Submit
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

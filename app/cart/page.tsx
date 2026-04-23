@@ -9,82 +9,77 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CartPage() {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { items, removeItem, updateQuantity, updateUnit } = useCart();
   const router = useRouter();
+
   const [tempValues, setTempValues] = useState<Record<string, string>>({});
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2787b4]" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Link href="/login">
-          <Button className="bg-[#2787b4] text-white">Log In</Button>
-        </Link>
-      </div>
-    );
-  }
+  if (authLoading) return null;
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-12">
 
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">
-          Shopping Cart
-        </h1>
+        <div className="mb-8">
+  <h1 className="text-3xl font-bold mb-2">Shopping Cart</h1>
+  <p className="text-slate-600">Review and manage your items before checkout</p>
+</div>
 
         {items.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-600 mb-4">Your cart is empty</p>
-            <Link href="/">
-              <Button className="bg-[#2787b4] text-white">
-                Continue Shopping
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <Card className="p-12 text-center">
 
-            {/* 🛒 ITEMS */}
+    <p className="text-slate-600 text-lg mb-4">
+      Your cart is empty
+    </p>
+
+    <p className="text-slate-500 mb-6">
+      Start shopping to add items to your cart
+    </p>
+
+    <Link href="/">
+      <Button className="bg-[#2787b4] hover:bg-[#1f6f94] text-white">
+        Continue Shopping
+      </Button>
+    </Link>
+
+  </Card>
+) : (
+          <div className="grid lg:grid-cols-3 gap-6">
+
+            {/* 🛒 LEFT - ITEMS */}
             <div className="lg:col-span-2 space-y-4">
+
               {items.map((item) => (
                 <Card key={item.id} className="p-4">
 
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex gap-4">
 
                     {/* IMAGE */}
-                    <div className="w-full sm:w-24 h-40 sm:h-24 bg-slate-200 rounded overflow-hidden flex-shrink-0">
-                      <img
-                        src={item.image && item.image.trim() ? item.image : '/placeholder.png'}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <img
+                      src={item.image || '/placeholder.png'}
+                      className="w-20 h-20 object-cover rounded border"
+                    />
 
-                    {/* CONTENT */}
+                    {/* DETAILS */}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2">
+
+                      <h3 className="font-semibold">
                         {item.name}
                       </h3>
 
-                      {/* CONTROLS */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {/* UNIT + QUANTITY */}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
 
-                        {/* UNIT */}
+                        {/* UNIT SELECT */}
                         <select
                           value={item.unit || 'box'}
                           onChange={(e) => updateUnit(item.id, e.target.value)}
                           className="border px-2 py-1 rounded text-sm"
                         >
                           <option value="box">Box</option>
-                          <option value="packs">Packs</option>
+                          <option value="pack">Pack</option>
                           <option value="kg">Kg</option>
                         </select>
 
@@ -96,7 +91,7 @@ export default function CartPage() {
                               item.quantity - (item.unit === 'kg' ? 0.5 : 1)
                             )
                           }
-                          className="px-3 py-1 border rounded"
+                          className="px-3 border rounded"
                         >
                           -
                         </button>
@@ -105,28 +100,20 @@ export default function CartPage() {
                         <input
                           type="number"
                           step={item.unit === 'kg' ? '0.5' : '1'}
-                          min="0"
                           value={tempValues[item.id] ?? item.quantity}
                           onChange={(e) =>
-                            setTempValues((prev) => ({
-                              ...prev,
+                            setTempValues({
+                              ...tempValues,
                               [item.id]: e.target.value,
-                            }))
+                            })
                           }
                           onBlur={() => {
-                            const raw = tempValues[item.id];
-                            if (raw !== undefined && raw !== '') {
-                              const value = Number(raw);
-                              if (!isNaN(value) && value > 0) {
-                                updateQuantity(item.id, value);
-                              }
-                            }
+                            const val = Number(tempValues[item.id]);
+                            if (val > 0) updateQuantity(item.id, val);
 
-                            setTempValues((prev) => {
-                              const copy = { ...prev };
-                              delete copy[item.id];
-                              return copy;
-                            });
+                            const copy = { ...tempValues };
+                            delete copy[item.id];
+                            setTempValues(copy);
                           }}
                           className="w-16 text-center border rounded"
                         />
@@ -139,58 +126,82 @@ export default function CartPage() {
                               item.quantity + (item.unit === 'kg' ? 0.5 : 1)
                             )
                           }
-                          className="px-3 py-1 border rounded"
+                          className="px-3 border rounded"
                         >
                           +
                         </button>
+
                       </div>
 
-                      {/* REMOVE BUTTON */}
+                      {/* REMOVE */}
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="text-red-500 text-sm hover:underline"
+                        className="text-red-500 text-sm mt-2"
                       >
                         Remove
                       </button>
+
                     </div>
                   </div>
 
                 </Card>
               ))}
+
             </div>
 
-            {/* 🧾 SUMMARY */}
+            {/* 🧾 RIGHT - SUMMARY */}
             <div>
-              <Card className="p-5 sticky top-24">
-                <h2 className="text-lg font-bold mb-4">Order Summary</h2>
+              <Card className="p-5 sticky top-20">
 
-                <div className="space-y-2 mb-4">
+                <h2 className="font-bold mb-4">Order Summary</h2>
+
+                <div className="space-y-3">
+
                   {items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600">
-                        {item.name} ({item.unit})
-                      </span>
-                      <span>{item.quantity}</span>
+                    <div key={item.id} className="flex items-center gap-2">
+
+                      {/* IMAGE */}
+                      <img
+                        src={item.image || '/placeholder.png'}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+
+                      {/* NAME */}
+                      <div className="flex-1 text-sm">
+                        {item.name}
+                      </div>
+
+                      {/* QTY */}
+                      <div className="text-sm font-medium">
+                        {item.quantity} {item.unit}
+                      </div>
+
                     </div>
                   ))}
+
                 </div>
 
                 <Link href="/checkout">
-                  <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
-                    Proceed to Checkout
-                  </Button>
-                </Link>
+  <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
+    Proceed to Checkout
+  </Button>
+</Link>
 
-                <Link href="/">
-                  <Button variant="outline" className="w-full mt-2">
-                    Continue Shopping
-                  </Button>
-                </Link>
+<Link href="/">
+  <Button
+    variant="outline"
+    className="w-full mt-3"
+  >
+    Continue Shopping
+  </Button>
+</Link>
+
               </Card>
             </div>
 
           </div>
         )}
+
       </div>
     </div>
   );

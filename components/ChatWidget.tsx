@@ -31,6 +31,7 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatId = user?.uid;
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
   const replyTimeout = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
   if (!user?.uid || !userData) return;
@@ -95,6 +96,17 @@ if (!hasSalesMessage && chatId && newMessages.length === 0) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  useEffect(() => {
+  const close = (e: any) => {
+    // ❌ huwag mag-close kung click ay nasa menu
+    if (e.target.closest('.chat-menu')) return;
+
+    setMenuOpenId(null);
+  };
+
+  window.addEventListener('click', close);
+  return () => window.removeEventListener('click', close);
+}, []);
   const markAsRead = async () => {
   if (!chatId) return;
 
@@ -219,6 +231,18 @@ replyTimeout.current = setTimeout(async () => {
   }`}
 >
                 {messages.map((m, index) => {
+                  const handleLongPressStart = (id: string) => {
+  longPressTimeout.current = setTimeout(() => {
+    navigator.vibrate?.(50);
+    setMenuOpenId(id);
+  }, 500);
+};
+
+const handleLongPressEnd = () => {
+  if (longPressTimeout.current) {
+    clearTimeout(longPressTimeout.current);
+  }
+};
 
   const isCustomer = m.sender === 'customer';
   const isTopMessage = index < 2;
@@ -273,17 +297,17 @@ const showTime =
     {isCustomer && (
       <div className="relative">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpenId(menuOpenId === m.id ? null : m.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-gray-700 w-6 h-6 flex items-center justify-center"
-        >
-          <MoreVertical size={16} />
-        </button>
+  onClick={(e) => {
+    e.stopPropagation();
+    setMenuOpenId(menuOpenId === m.id ? null : m.id);
+  }}
+  className="hidden sm:flex opacity-0 sm:group-hover:opacity-100 transition text-gray-400 hover:text-gray-700 w-6 h-6 items-center justify-center"
+>
+  <MoreVertical size={16} />
+</button>
 
         {menuOpenId === m.id && (
-          <div className="absolute left-0 bottom-8 bg-white border rounded shadow text-sm z-10">
+          <div className="chat-menu absolute left-0 bottom-8 bg-white border rounded shadow text-sm z-10">
             {isEditable && (
               <button
                 onClick={() => {
@@ -315,12 +339,16 @@ const showTime =
 
     {/* 💬 BUBBLE */}
     <div
-      className={`px-3 py-1.5 rounded-2xl text-sm ${
-        isCustomer
-          ? 'bg-[#2787b4] text-white'
-          : 'bg-gray-200 text-gray-800'
-      }`}
-    >
+  onTouchStart={() => isCustomer && handleLongPressStart(m.id)}
+onTouchEnd={handleLongPressEnd}
+onMouseDown={() => isCustomer && handleLongPressStart(m.id)}
+onMouseUp={handleLongPressEnd}
+  className={`px-3 py-1.5 rounded-2xl text-sm ${
+    isCustomer
+      ? 'bg-[#2787b4] text-white'
+      : 'bg-gray-200 text-gray-800'
+  }`}
+>
       {m.text}
     </div>
 

@@ -9,19 +9,19 @@ export interface Order {
   id: string;
   userId: string;
   items: Array<{
-  id: string;
-  name: string;
-  quantity: number;
-  unit?: 'box' | 'packs' | 'kg';
-}>
+    id: string;
+    name: string;
+    quantity: number;
+    unit?: 'box' | 'packs' | 'kg';
+  }>;
   shippingAddress: {
     fullName: string;
-    email: string;
     phone: string;
-    address: string;
+    barangay: string;
     city: string;
-    state: string;
+    province: string;
     zipCode: string;
+    fullAddress?: string;
   };
   status: 'Pending' | 'In Production' | 'In Transit' | 'Out for Delivery' | 'Delivered';
   createdAt: Date;

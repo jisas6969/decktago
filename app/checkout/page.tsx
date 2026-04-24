@@ -1,4 +1,8 @@
 'use client';
+import regions from '@/data/ph/regions.json';
+import provinces from '@/data/ph/provinces.json';
+import cities from '@/data/ph/cities.json';
+import barangays from '@/data/ph/barangays.json';
 import { MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
@@ -30,15 +34,28 @@ export default function CheckoutPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+const [step, setStep] = useState<'region' | 'province' | 'city' | 'barangay'>('region');
+
+const [selectedRegion, setSelectedRegion] = useState('');
+const [selectedProvince, setSelectedProvince] = useState('');
+const [selectedCity, setSelectedCity] = useState('');
+const [tempBarangay, setTempBarangay] = useState(''); 
+const [selectedRegionName, setSelectedRegionName] = useState('');
+const [selectedProvinceName, setSelectedProvinceName] = useState('');
+const [selectedCityName, setSelectedCityName] = useState('');
+const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+
+  
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    province: '',
-    city: '',
-    barangay: '',
-    zipCode: '',
-  });
+  fullName: '',
+  phone: '',
+  province: '',
+  city: '',
+  barangay: '',
+  zipCode: '',
+});
 
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -149,6 +166,7 @@ export default function CheckoutPage() {
   if (!user) return null;
 
   return (
+    
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-12 space-y-4">
 
@@ -176,7 +194,27 @@ export default function CheckoutPage() {
               </p>
 
               <button
-                onClick={() => setShowAddressModal(true)}
+                onClick={() => {
+  setFormData({
+    fullName: '',
+    phone: '',
+    province: '',
+    city: '',
+    barangay: '',
+    zipCode: '',
+  });
+
+  setIsEditing(false);
+  setEditingId(null);
+
+  setSelectedRegion('');
+  setSelectedProvince('');
+  setSelectedCity('');
+  setTempBarangay('');
+  setStep('region');
+
+  setShowAddressModal(true);
+}}
                 className="text-[#2787b4] text-sm font-medium hover:underline"
               >
                 Add Address
@@ -248,7 +286,7 @@ export default function CheckoutPage() {
   <Button
     onClick={handleSubmit}
     disabled={!selectedAddress || loading}
-    className="flex-1 bg-[#2787b4] text-white"
+    className="flex-1 bg-[#2787b4] hover:bg-[#1f6f94] text-white"
   >
     {loading ? 'Placing Order...' : 'Place Order'}
   </Button>
@@ -331,9 +369,28 @@ export default function CheckoutPage() {
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => {
-                  setShowAddressList(false);
-                  setShowAddressModal(true);
-                }}
+  setShowAddressList(false);
+
+  setFormData({
+    fullName: '',
+    phone: '',
+    province: '',
+    city: '',
+    barangay: '',
+    zipCode: '',
+  });
+
+  setIsEditing(false);
+  setEditingId(null);
+
+  setSelectedRegion('');
+  setSelectedProvince('');
+  setSelectedCity('');
+  setTempBarangay('');
+  setStep('region');
+
+  setShowAddressModal(true);
+}}
                 className="bg-[#2787b4] text-white px-4 py-2 rounded"
               >
                 + Add New Address
@@ -381,32 +438,22 @@ export default function CheckoutPage() {
 
   {/* ADDRESS */}
   <div>
-    <label className="text-sm text-gray-600">Province</label>
-    <Input
-      name="province"
-      value={formData.province}
-      onChange={handleChange}
-    />
-  </div>
+  <label className="text-sm text-gray-600">
+    Region, Province, City, Barangay
+  </label>
 
-  <div>
-    <label className="text-sm text-gray-600">City</label>
-    <Input
-      name="city"
-      value={formData.city}
-      onChange={handleChange}
-    />
-  </div>
-
-  <div>
-    <label className="text-sm text-gray-600">Barangay</label>
-    <Input
-      name="barangay"
-      value={formData.barangay}
-      onChange={handleChange}
-    />
-  </div>
-
+  <button
+    onClick={() => {
+  setShowPicker(true);
+  setStep('region');
+}}
+    className="w-full border rounded px-3 py-2 text-left text-sm"
+  >
+    {formData.barangay
+      ? `${formData.barangay}, ${formData.city}, ${formData.province}`
+      : 'Select Region, Province, City, Barangay'}
+  </button>
+</div>
   <div>
     <label className="text-sm text-gray-600">Zip Code</label>
     <Input
@@ -419,9 +466,44 @@ export default function CheckoutPage() {
 </div>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowAddressModal(false)}>
-                Cancel
-              </button>
+              <button
+  onClick={() => {
+    // close modal
+    setShowAddressModal(false);
+
+    // balik sa list
+    setShowAddressList(true);
+
+    // 🔥 reset form
+    setFormData({
+      fullName: '',
+      phone: '',
+      province: '',
+      city: '',
+      barangay: '',
+      zipCode: '',
+    });
+
+    // reset edit state
+    setIsEditing(false);
+    setEditingId(null);
+
+    // 🔥 reset picker state
+    setSelectedRegion('');
+    setSelectedProvince('');
+    setSelectedCity('');
+    setSelectedRegionName('');
+    setSelectedProvinceName('');
+    setSelectedCityName('');
+    setTempBarangay('');
+    setStep('region');
+
+    // close picker if open
+    setShowPicker(false);
+  }}
+>
+  Cancel
+</button>
 
               <button
                 onClick={handleSaveAddress}
@@ -433,7 +515,183 @@ export default function CheckoutPage() {
 
           </div>
         </div>
+        
       )}
+      {showPicker && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    
+    <div className="bg-white w-full max-w-md rounded-lg">
+
+      {/* HEADER TABS */}
+      <div className="flex justify-between items-center border-b p-3">
+  <span className="font-medium">Select Address</span>
+  <button onClick={() => setShowPicker(false)}>✕</button>
+</div>
+
+<div className="flex border-b text-sm">
+
+        <div
+  onClick={() => setStep('region')}
+  className={`flex-1 text-center py-2 cursor-pointer ${
+    step === 'region' && 'text-[#2787b4] border-b-2 border-[#2787b4]'
+  }`}
+>
+  {selectedRegionName || 'Region'}
+</div>
+
+ {/* Hide Province tab if selected region has no provinces */}
+ {(!selectedRegion || provinces.some((p: any) => p.regionCode === selectedRegion)) && (
+  <div
+    onClick={() => selectedRegion && setStep('province')}
+    className={`flex-1 text-center py-2 cursor-pointer ${
+      step === 'province' && 'text-[#2787b4] border-b-2 border-[#2787b4]'
+    }`}
+  >
+    {selectedProvinceName || 'Province'}
+  </div>
+)}
+
+ {/* Hide City tab if selected province has no cities (only when province step is active) */}
+ {(!selectedProvince || cities.some((c: any) => c.provinceCode === selectedProvince) || !provinces.some((p: any) => p.regionCode === selectedRegion)) && (
+<div
+  onClick={() => (selectedProvince || (selectedRegion && !provinces.some((p: any) => p.regionCode === selectedRegion))) && setStep('city')}
+  className={`flex-1 text-center py-2 cursor-pointer ${
+    step === 'city' && 'text-[#2787b4] border-b-2 border-[#2787b4]'
+  }`}
+>
+  {selectedCityName || 'City'}
+</div>
+)}
+
+<div
+  onClick={() => selectedCity && setStep('barangay')}
+  className={`flex-1 text-center py-2 cursor-pointer ${
+    step === 'barangay' && 'text-[#2787b4] border-b-2 border-[#2787b4]'
+  }`}
+>
+  Barangay
+</div>
+
+      </div>
+
+      {/* LIST */}
+      <div className="p-4 max-h-80 overflow-y-auto">
+
+        {/* REGION */}
+       {step === 'region' && (
+  regions.map((r: any) => (
+    <div
+      key={r.code}
+      onClick={() => {
+  setSelectedRegion(r.code);
+  setSelectedRegionName(r.name);
+
+  setSelectedProvince('');
+  setSelectedProvinceName('');
+  setSelectedCity('');
+  setSelectedCityName('');
+
+  setTempBarangay('');
+
+  // Dynamically skip province if this region has no provinces
+  const hasProvinces = provinces.some((p: any) => p.regionCode === r.code);
+  if (!hasProvinces) {
+    setStep('city'); // skip province, go to city
+  } else {
+    setStep('province');
+  }
+}}
+      className="py-2 cursor-pointer hover:bg-gray-100"
+    >
+      {r.name}
+    </div>
+  ))
+)}
+
+        {/* PROVINCE */}
+        {step === 'province' && (
+  provinces
+    .filter((p: any) => p.regionCode === selectedRegion)
+    .map((p: any) => (
+      <div
+        key={p.code}
+        onClick={() => {
+  setSelectedProvince(p.code);
+  setSelectedProvinceName(p.name);
+
+  setSelectedCity('');
+  setSelectedCityName('');
+
+  setTempBarangay('');
+  setStep('city');
+}}
+        className="py-2 cursor-pointer hover:bg-gray-100"
+      >
+        {p.name}
+      </div>
+    ))
+)}
+        
+        {/* CITY */}
+        {step === 'city' && (
+  cities
+    .filter((c: any) => {
+      // If region has no provinces, filter cities by regionCode directly
+      const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+      return hasProvinces
+        ? c.provinceCode === selectedProvince
+        : c.regionCode === selectedRegion;
+    })
+    .map((c: any) => (
+      <div
+        key={c.code}
+        onClick={() => {
+          setSelectedCity(c.code);
+          setSelectedCityName(c.name);
+          setTempBarangay('');
+          setStep('barangay');
+        }}
+        className="py-2 cursor-pointer hover:bg-gray-100"
+      >
+        {c.name}
+      </div>
+    ))
+)}
+        
+
+        {/* BARANGAY */}
+        {step === 'barangay' && (
+  barangays
+    .filter((b: any) => b.cityCode === selectedCity)
+    .map((b: any) => (
+      <div
+        key={b.code}
+        onClick={() => {
+          const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+          setFormData(prev => ({
+            ...prev,
+            province: hasProvinces
+              ? provinces.find((p: any) => p.code === selectedProvince)?.name
+              : selectedRegionName, // Use region name when no provinces exist
+            city: cities.find((c: any) => c.code === selectedCity)?.name,
+            barangay: b.name
+          }));
+
+          setShowPicker(false);
+          setStep('region');
+        }}
+        className="py-2 cursor-pointer hover:bg-gray-100"
+      >
+        {b.name}
+      </div>
+    ))
+)}
+
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }

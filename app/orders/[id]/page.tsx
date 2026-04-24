@@ -253,11 +253,16 @@ export default function OrderDetailPage() {
 </div>
 
               <div className="text-sm text-gray-600">
-                <p>{order.shippingAddress.fullName}</p>
-                <p>{order.shippingAddress.address}</p>
-                <p>{order.shippingAddress.city}</p>
-                <p>{order.shippingAddress.phone}</p>
-              </div>
+  <p>{order.shippingAddress.fullName}</p>
+
+  <p>
+    {order.shippingAddress.barangay}, {order.shippingAddress.city}, {order.shippingAddress.province}
+  </p>
+
+  <p>{order.shippingAddress.zipCode}</p>
+
+  <p>{order.shippingAddress.phone}</p>
+</div>
             </Card>
           </div>
 

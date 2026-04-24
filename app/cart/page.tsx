@@ -14,7 +14,23 @@ export default function CartPage() {
   const router = useRouter();
 
   const [tempValues, setTempValues] = useState<Record<string, string>>({});
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const toggleSelect = (id: string) => {
+  setSelectedItems((prev) =>
+    prev.includes(id)
+      ? prev.filter((i) => i !== id)
+      : [...prev, id]
+  );
+};
+  const isAllSelected = items.length > 0 && selectedItems.length === items.length;
 
+const handleSelectAll = () => {
+  if (isAllSelected) {
+    setSelectedItems([]);
+  } else {
+    setSelectedItems(items.map(item => item.id));
+  }
+};
   if (authLoading) return null;
   if (!user) return null;
 
@@ -25,6 +41,19 @@ export default function CartPage() {
         <div className="mb-8">
   <h1 className="text-3xl font-bold mb-2">Shopping Cart</h1>
   <p className="text-slate-600">Review and manage your items before checkout</p>
+</div>
+<div className="flex items-center gap-3 mb-3 px-2">
+
+  {/* ✅ SELECT ALL */}
+  <input
+    type="checkbox"
+    checked={isAllSelected}
+    onChange={handleSelectAll}
+    className="w-4 h-4 accent-[#2787b4]"
+  />
+
+  <span className="text-sm font-medium">Select All</span>
+
 </div>
 
         {items.length === 0 ? (
@@ -54,15 +83,23 @@ export default function CartPage() {
               {items.map((item) => (
                 <Card key={item.id} className="p-4">
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 items-center">
 
-                    {/* IMAGE */}
-                    <img
-                      src={item.image || '/placeholder.png'}
-                      className="w-20 h-20 object-cover rounded border"
-                    />
+  {/* ✅ CHECKBOX */}
+  <input
+    type="checkbox"
+    checked={selectedItems.includes(item.id)}
+    onChange={() => toggleSelect(item.id)}
+    className="w-4 h-4 accent-[#2787b4]"
+  />
 
-                    {/* DETAILS */}
+  {/* IMAGE */}
+  <img
+    src={item.image || '/placeholder.png'}
+    className="w-20 h-20 object-cover rounded border"
+  />
+
+  {/* DETAILS */}
                     <div className="flex-1">
 
                       <h3 className="font-semibold">
@@ -157,7 +194,9 @@ export default function CartPage() {
 
                 <div className="space-y-3">
 
-                  {items.map((item) => (
+                  {items
+  .filter((item) => selectedItems.includes(item.id))
+  .map((item) => (
                     <div key={item.id} className="flex items-center gap-2">
 
                       {/* IMAGE */}
@@ -181,11 +220,22 @@ export default function CartPage() {
 
                 </div>
 
-                <Link href="/checkout">
-  <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
-    Proceed to Checkout
+                {selectedItems.length > 0 ? (
+  <Link
+  href={{
+    pathname: "/checkout",
+    query: { selected: JSON.stringify(selectedItems) },
+  }}
+>
+    <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
+      Proceed to Checkout
+    </Button>
+  </Link>
+) : (
+  <Button disabled className="w-full">
+    Select items first
   </Button>
-</Link>
+)}
 
 <Link href="/">
   <Button

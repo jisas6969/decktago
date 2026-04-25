@@ -17,10 +17,11 @@ export interface Order {
   shippingAddress: {
     fullName: string;
     phone: string;
+    street?: string;
     barangay: string;
     city: string;
     province: string;
-    zipCode: string;
+    postalCode: string;
     fullAddress?: string;
   };
   status: 'Pending' | 'In Production' | 'In Transit' | 'Out for Delivery' | 'Delivered';

@@ -256,10 +256,10 @@ export default function OrderDetailPage() {
   <p>{order.shippingAddress.fullName}</p>
 
   <p>
-    {order.shippingAddress.barangay}, {order.shippingAddress.city}, {order.shippingAddress.province}
-  </p>
+  {order.shippingAddress.street && `${order.shippingAddress.street}, `}
+  {order.shippingAddress.barangay}, {order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postalCode}
+</p>
 
-  <p>{order.shippingAddress.zipCode}</p>
 
   <p>{order.shippingAddress.phone}</p>
 </div>

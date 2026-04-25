@@ -54,7 +54,8 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
   province: '',
   city: '',
   barangay: '',
-  zipCode: '',
+  postalCode: '',
+  street: '',
 });
 
   const handleChange = (e: any) => {
@@ -80,9 +81,10 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
         setSelectedAddress(selected);
 
         setFormData((prev) => ({
-          ...prev,
-          ...selected,
-        }));
+  ...prev,
+  ...selected,
+  postalCode: selected.postalCode || selected.zipCode || '',
+}));
       }
     };
 
@@ -101,6 +103,21 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
     if (snap.exists() && snap.data().addresses) {
       existing = snap.data().addresses;
     }
+    if (
+  !formData.fullName ||
+  !formData.phone ||
+  !formData.street ||
+  !formData.postalCode ||
+  !formData.barangay
+) {
+  alert('Please complete all required fields');
+  return;
+}
+if (!/^09\d{9}$/.test(formData.phone)) {
+  alert('Invalid Philippine phone number');
+  return;
+}
+
 
     let updated;
 
@@ -116,7 +133,8 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
         province: formData.province,
         city: formData.city,
         barangay: formData.barangay,
-        zipCode: formData.zipCode,
+        postalCode: formData.postalCode,
+        street: formData.street,
         isDefault: existing.length === 0,
       };
 
@@ -150,7 +168,7 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
       const docRef = await addDoc(collection(db, 'orders'), order);
 
       await updateUserData({
-        address: `${selectedAddress.barangay}, ${selectedAddress.city}, ${selectedAddress.province}`,
+        address: `${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.city}, ${selectedAddress.province} ${selectedAddress.postalCode}`,
         phone: selectedAddress.phone,
       });
 
@@ -201,7 +219,8 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
     province: '',
     city: '',
     barangay: '',
-    zipCode: '',
+    postalCode: '',
+    street: '',
   });
 
   setIsEditing(false);
@@ -231,7 +250,7 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
     </span>
 
     <span className="text-gray-600">
-      {formData.barangay}, {formData.city}, {formData.province} {formData.zipCode}
+      {formData.street}, {formData.barangay}, {formData.city}, {formData.province} {formData.postalCode}
     </span>
 
     <span className="text-xs bg-red-100 text-red-500 px-2 py-1 rounded w-fit">
@@ -339,7 +358,7 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
                     </p>
 
                     <p className="text-sm text-gray-500">
-                      {addr.barangay}, {addr.city}, {addr.province}
+                      {addr.street}, {addr.barangay}, {addr.city}, {addr.province} {addr.postalCode}
                     </p>
 
                     {addr.isDefault && (
@@ -377,7 +396,8 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
     province: '',
     city: '',
     barangay: '',
-    zipCode: '',
+    postalCode: '',
+    street: '',
   });
 
   setIsEditing(false);
@@ -455,14 +475,24 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
   </button>
 </div>
   <div>
-    <label className="text-sm text-gray-600">Zip Code</label>
-    <Input
-      name="zipCode"
-      value={formData.zipCode}
-      onChange={handleChange}
-    />
+    <label className="text-sm text-gray-600">Postal Code</label>
+<Input
+  name="postalCode"
+  value={formData.postalCode}
+  onChange={handleChange}
+/>
   </div>
-
+  
+<div>
+  <label className="text-sm text-gray-600">
+    Street Name, Building, House No.
+  </label>
+  <Input
+    name="street"
+    value={formData.street}
+    onChange={handleChange}
+  />
+</div>
 </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -481,7 +511,8 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
       province: '',
       city: '',
       barangay: '',
-      zipCode: '',
+      postalCode: '',
+      street: '',
     });
 
     // reset edit state

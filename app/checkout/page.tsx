@@ -279,34 +279,37 @@ if (!/^09\d{9}$/.test(formData.phone)) {
         <Card className="p-5">
           <h2 className="font-bold mb-4">Products Ordered</h2>
 
+          <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 text-xs font-bold text-gray-400 uppercase mb-3">
+            <div>Product</div>
+            <div className="text-center">Quantity</div>
+            <div className="text-right">Subtotal</div>
+          </div>
+
           {items.map((item: any) => (
-            <div key={item.id} className="flex items-center gap-3 mb-3">
+            <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center text-sm border-b last:border-none pb-2 mb-2">
 
-  <img
-    src={item.image || '/placeholder.png'}
-    className="w-14 h-14 object-cover border rounded"
-  />
+              <div className="flex items-center gap-2">
+                <img src={item.image || '/placeholder.png'} className="w-14 h-14 object-cover border rounded" />
+                <span>{item.name}</span>
+              </div>
 
-  <div className="flex-1">
-    <p className="text-sm">{item.name}</p>
-    <p className="text-xs text-gray-500">
-      {item.quantity} kg
-    </p>
-  </div>
+              <div className="text-center">
+                {item.quantity} kg
+              </div>
 
-  <div className="text-sm font-medium">
-    ₱{(item.price * item.quantity).toFixed(2)}
-  </div>
+              <div className="text-right font-medium">
+                ₱ {(item.price * item.quantity).toLocaleString()}
+              </div>
 
-</div>
-            
+            </div>
           ))}
-          <div className="mt-4 pt-4 flex justify-end">
-  <div className="border-t pt-2 inline-flex gap-2 font-semibold text-lg">
-    <span>Total:</span>
-    <span>₱{total.toFixed(2)}</span>
-  </div>
-</div>
+
+          <div className="mt-4 pt-4 border-t flex justify-between items-center text-lg font-bold">
+            <span>Total</span>
+            <span className="text-[#2787b4]">
+              ₱ {total.toLocaleString()}
+            </span>
+          </div>
           
         </Card>
 

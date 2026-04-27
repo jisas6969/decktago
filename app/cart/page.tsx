@@ -137,11 +137,11 @@ const handleSelectAll = () => {
                         {item.name}
                       </h3>
                       <p className="text-sm text-gray-600">
-  ₱{item.price} / kg
+  ₱ {Number(item.price).toLocaleString()} / kg
 </p>
 
 <p className="text-sm font-medium">
-  Total: ₱{Number(item.price) * Number(item.quantity)}
+  Total: ₱ {(Number(item.price) * Number(item.quantity)).toLocaleString()}
 </p>
 
                       {/* UNIT + QUANTITY */}
@@ -216,31 +216,38 @@ const handleSelectAll = () => {
 
                 <h2 className="font-bold mb-4">Order Summary</h2>
 
-                <div className="space-y-3">
+                {/* Header Row */}
+                <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 text-xs font-bold text-gray-400 uppercase mb-2">
+                  <div>Product</div>
+                  <div className="text-center">Quantity</div>
+                  <div className="text-right">Subtotal</div>
+                </div>
+
+                <div className="space-y-0">
 
                   {items
   .filter((item) => selectedItems.includes(item.id))
   .map((item) => (
-                    <div key={item.id} className="flex items-center gap-2">
+                    <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center text-sm border-b last:border-none pb-2 mb-2">
 
-                      {/* IMAGE */}
-                      <img
-                        src={item.image || '/placeholder.png'}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-
-                      {/* NAME */}
-                      <div className="flex-1 text-sm">
-                        {item.name}
+                      {/* IMAGE + NAME */}
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={item.image || '/placeholder.png'}
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                        <span>{item.name}</span>
                       </div>
 
-                      {/* QTY */}
-                      <div className="text-sm text-right flex items-center gap-2 justify-end">
-  <span>{item.quantity} kg</span>
-  <span className="font-medium">
-    ₱{(item.price * item.quantity).toFixed(2)}
-  </span>
-</div>
+                      {/* QUANTITY */}
+                      <div className="text-center">
+                        {item.quantity} kg
+                      </div>
+
+                      {/* SUBTOTAL */}
+                      <div className="text-right font-medium">
+                        ₱ {(item.price * item.quantity).toLocaleString()}
+                      </div>
 
                     </div>
                   ))}
@@ -248,8 +255,10 @@ const handleSelectAll = () => {
                 </div>
                 <div className="border-t pt-3 mt-4">
   <div className="flex justify-between font-bold text-lg">
-    <span>Total Amount</span>
-    <span>₱{total}</span>
+    <span>Total</span>
+    <span className="text-[#2787b4] font-bold">
+  ₱ {total.toLocaleString()}
+</span>
   </div>
 </div>
 

@@ -221,22 +221,28 @@ export default function OrderDetailPage() {
               <div>
                 <h2 className="font-semibold mb-4">Order Items</h2>
 
-                {order.items.map((item) => (
-                  <div
-  key={item.id}
-  className="flex justify-between border-b py-2"
->
-  <div>
-    <p>{item.name}</p>
-    <p className="text-sm text-gray-500">
-      {item.quantity} kg
-    </p>
-  </div>
+                <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 text-xs font-bold text-gray-400 uppercase mb-3">
+                  <div>Product</div>
+                  <div className="text-center">Quantity</div>
+                  <div className="text-right">Subtotal</div>
+                </div>
 
-  <div className="font-medium">
-    ₱{(item.price * item.quantity).toFixed(2)}
-  </div>
-</div>
+                {order.items.map((item) => (
+                  <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center text-sm border-b last:border-none py-2">
+
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                    </div>
+
+                    <div className="text-center">
+                      {item.quantity} kg
+                    </div>
+
+                    <div className="text-right font-medium">
+                      ₱ {(item.price * item.quantity).toLocaleString()}
+                    </div>
+
+                  </div>
                 ))}
               </div>
 
@@ -248,21 +254,36 @@ export default function OrderDetailPage() {
             <Card className="p-6 sticky top-24">
               <h2 className="font-bold mb-4">Order Summary</h2>
 
-              <div className="space-y-2 mb-4">
-  {order.items.map((item) => (
-    <div key={item.id} className="flex justify-between text-sm">
-  <span>{item.name}</span>
-  <span className="flex items-center gap-2">
-  <span>{item.quantity} kg</span>
-  <span>₱{(item.price * item.quantity).toFixed(2)}</span>
-</span>
-</div>
-  ))}  
-</div>
-<div className="border-t pt-3 mt-3 flex justify-between font-bold">
-  <span>Total</span>
-  <span>₱{total.toFixed(2)}</span>
-</div>
+              <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 text-xs font-bold text-gray-400 uppercase mb-2">
+                <div>Product</div>
+                <div className="text-center">Quantity</div>
+                <div className="text-right">Subtotal</div>
+              </div>
+
+              <div className="space-y-0 mb-4">
+                {order.items.map((item) => (
+                  <div key={item.id} className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center text-sm border-b last:border-none pb-2 mb-2">
+
+                    <div>{item.name}</div>
+
+                    <div className="text-center">
+                      {item.quantity} kg
+                    </div>
+
+                    <div className="text-right font-medium">
+                      ₱ {(item.price * item.quantity).toLocaleString()}
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-3 mt-3 flex justify-between items-center font-bold text-lg">
+                <span>Total</span>
+                <span className="text-[#2787b4]">
+                  ₱ {total.toLocaleString()}
+                </span>
+              </div>
 
 
               <div className="text-sm text-gray-600">

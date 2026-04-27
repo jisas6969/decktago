@@ -182,6 +182,10 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   };
 
   if (!user) return null;
+  const total = items.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0
+);
 
   return (
     
@@ -297,6 +301,12 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 </div>
             
           ))}
+          <div className="mt-4 pt-4 flex justify-end">
+  <div className="border-t pt-2 inline-flex gap-2 font-semibold text-lg">
+    <span>Total:</span>
+    <span>₱{total.toFixed(2)}</span>
+  </div>
+</div>
           
         </Card>
 

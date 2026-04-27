@@ -1,4 +1,5 @@
 'use client';
+import { Send, Check } from 'lucide-react';
 import { getAutoReply, getWelcomeMessage } from '@/lib/chatbot';
 import { getDoc } from "firebase/firestore"
 import { useEffect, useState, useRef } from 'react';
@@ -196,9 +197,13 @@ replyTimeout.current = setTimeout(async () => {
   className="fixed bottom-6 right-6 z-50"
 >
   {/* 🔵 BUTTON (unchanged mo) */}
-  <div className="bg-[#2787b4] text-white p-5 rounded-full shadow-xl cursor-pointer hover:bg-[#1f6f94] transition">
-    <MessageCircle className="w-7 h-7" />
-  </div>
+  <div className="cursor-pointer flex items-center justify-center">
+  <img
+    src="/logo.png" // 👉 palitan mo ng logo mo
+    alt="chat"
+    className="w-15 h-15 transition hover:scale-110 active:scale-95"
+  />
+</div>
 
   {/* 🔴 BADGE (separate, hindi nakaka-apekto sa size) */}
   {unreadCount > 0 && (
@@ -391,11 +396,28 @@ onMouseUp={handleLongPressEnd}
                 )}
 
                 <button
-                  onClick={sendMessage}
-                  className="bg-[#2787b4] text-white px-4 py-2 rounded-full text-sm hover:bg-[#1f6f94]"
-                >
-                  {editingId ? 'Update' : 'Send'}
-                </button>
+  onClick={sendMessage}
+  disabled={!text.trim()}
+  className="p-2 flex items-center justify-center transition duration-200"
+>
+  {editingId ? (
+    <Check
+      size={20}
+      className="text-[#2787b4] hover:text-[#1f6f94] hover:scale-110 transition"
+    />
+  ) : (
+    <Send
+      size={20}
+      className={`rotate-45 transition duration-200
+        ${
+          text.trim()
+            ? 'text-[#2787b4] hover:text-[#1f6f94] hover:scale-110 hover:-translate-y-[1px]'
+            : 'text-gray-300'
+        }
+      `}
+    />
+  )}
+</button>
               </div>
             </div>
 

@@ -276,21 +276,25 @@ if (!/^09\d{9}$/.test(formData.phone)) {
           <h2 className="font-bold mb-4">Products Ordered</h2>
 
           {items.map((item: any) => (
-            <div key={item.id} className="flex gap-3 mb-3">
-              <img
-                src={item.image || '/placeholder.png'}
-                className="w-14 h-14 object-cover border rounded"
-              />
+            <div key={item.id} className="flex items-center gap-3 mb-3">
 
-              <div className="flex-1">
-                <p className="text-sm">{item.name}</p>
-                <p className="text-xs text-gray-500">{item.unit}</p>
-              </div>
+  <img
+    src={item.image || '/placeholder.png'}
+    className="w-14 h-14 object-cover border rounded"
+  />
 
-              <div>{item.quantity}</div>
-              
-              
-            </div>
+  <div className="flex-1">
+    <p className="text-sm">{item.name}</p>
+    <p className="text-xs text-gray-500">
+      {item.quantity} kg
+    </p>
+  </div>
+
+  <div className="text-sm font-medium">
+    ₱{(item.price * item.quantity).toFixed(2)}
+  </div>
+
+</div>
             
           ))}
           

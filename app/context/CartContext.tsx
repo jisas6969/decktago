@@ -13,9 +13,10 @@ import { db } from '@/lib/firebase';
 interface CartItem {
   id: string;
   name: string;
+  price: number; // ✅ ADD THIS
   quantity: number;
   image?: string;
-  unit?: 'box' | 'packs' | 'kg';
+  unit?: 'kg'; // pwede mo na rin i-simplify
 }
 
 interface CartContextType {
@@ -23,7 +24,6 @@ interface CartContextType {
   addItem: (item: CartItem) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
   updateQuantity: (id: string, quantity: number) => Promise<void>;
-  updateUnit: (id: string, unit: 'box' | 'packs' | 'kg') => Promise<void>;
   clearCart: () => Promise<void>;
 }
 
@@ -71,12 +71,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       existing.quantity += 1;
     } else {
       currentItems.push({
-        id: product.id || '',
-        name: product.name || 'Unknown',
-        quantity: 1,
-        image: product.image || '/placeholder.png',
-        unit: product.unit || 'box', // ✅ DEFAULT
-      });
+  id: product.id || '',
+  name: product.name || 'Unknown',
+  price: product.price || 0, // ✅ IMPORTANT
+  quantity: 1,
+  image: product.image || '/placeholder.png',
+  unit: 'kg', 
+});
     }
 
     await setDoc(cartRef, { items: currentItems }, { merge: true });
@@ -104,23 +105,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     await setDoc(cartRef, { items: currentItems }, { merge: true });
   };
 
-  // ✅ UPDATE UNIT (BOX / PACKS)
-  const updateUnit = async (id: string, unit: 'box' | 'packs' | 'kg') => {
-    if (!user) return;
 
-    const cartRef = doc(db, 'carts', user.uid);
-    const snap = await getDoc(cartRef);
 
-    if (!snap.exists()) return;
-
-    let currentItems: CartItem[] = snap.data().items || [];
-
-    currentItems = currentItems.map((item) =>
-      item.id === id ? { ...item, unit } : item
-    );
-
-    await setDoc(cartRef, { items: currentItems }, { merge: true });
-  };
 
   // ✅ REMOVE ITEM
   const removeItem = async (id: string) => {
@@ -150,7 +136,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         addItem,
         removeItem,
         updateQuantity,
-        updateUnit, // ✅ INCLUDED
         clearCart,
       }}
     >

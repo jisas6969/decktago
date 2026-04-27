@@ -9,11 +9,11 @@ export interface Order {
   id: string;
   userId: string;
   items: Array<{
-    id: string;
-    name: string;
-    quantity: number;
-    unit?: 'box' | 'packs' | 'kg';
-  }>;
+  id: string;
+  name: string;
+  quantity: number;
+  price: number; // ✅ ADD THIS
+}>;
   shippingAddress: {
     fullName: string;
     phone: string;

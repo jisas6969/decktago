@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import ProductImage from '@/components/ProductImage';
 import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CheckCircle } from "lucide-react";
 
@@ -24,6 +24,23 @@ export default function HomePage() {
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
+  const [inventory, setInventory] = useState<Record<string, number>>({});
+  useEffect(() => {
+  const fetchInventory = async () => {
+    const snap = await getDocs(collection(db, 'inventory'));
+
+    const map: Record<string, number> = {};
+
+    snap.forEach((doc) => {
+      const data = doc.data();
+      map[data.product_id] = data.stock;
+    });
+
+    setInventory(map);
+  };
+
+  fetchInventory();
+}, []);
 
   // 🔐 Redirect if not logged in
   useEffect(() => {
@@ -50,12 +67,13 @@ export default function HomePage() {
 
   const handleAddToCart = (product: any) => {
   addItem({
-    id: product.id,
-    name: product.name,
-    quantity: 1,
-    image: product.imageUrl,
-    unit: 'box',
-  });
+  id: product.id,
+  name: product.name,
+  price: product.price,
+  quantity: 1,
+  image: product.imageUrl,
+  unit: 'kg',
+});
 
     toast({
   duration: 1500,
@@ -190,21 +208,36 @@ export default function HomePage() {
                 <ProductImage src={product.imageUrl || '/placeholder.png'} />
 
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">
-                    {product.name}
-                  </h3>
+  <h3 className="font-semibold text-lg mb-2">
+    {product.name}
+  </h3>
 
-                  <p className="text-sm text-gray-500 mb-3">
-                    {product.type} • {product.category}
-                  </p>
+  <p className="text-sm text-gray-500 mb-1">
+    {product.type} • {product.category}
+  </p>
 
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white"
-                  >
-                    Add to Cart
-                  </Button>
-                </div>
+  {/* 💰 PRICE */}
+  <p className="text-sm text-gray-700">
+    ₱{product.price ?? 0}
+  </p>
+
+
+{/* 📦 STATUS */}
+<p className={`text-sm font-medium mb-2 ${
+  (inventory[product.id] ?? 0) > 0 ? "text-green-500" : "text-red-500"
+}`}>
+  {(inventory[product.id] ?? 0) > 0 ? "Available" : "Unavailable"}
+</p>
+
+
+  <Button
+  onClick={() => handleAddToCart(product)}
+  disabled={(inventory[product.id] ?? 0) === 0}
+  className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white disabled:bg-gray-400"
+>
+  {(inventory[product.id] ?? 0) > 0 ? "Add to Cart" : "Out of Stock"}
+</Button>
+</div>
               </Card>
             ))}
 

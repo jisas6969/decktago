@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
-  const { items, removeItem, updateQuantity, updateUnit } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
   const router = useRouter();
 
   const [tempValues, setTempValues] = useState<Record<string, string>>({});
@@ -23,6 +23,9 @@ export default function CartPage() {
   );
 };
   const isAllSelected = items.length > 0 && selectedItems.length === items.length;
+  const total = items
+  .filter(item => selectedItems.includes(item.id))
+  .reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
 const handleSelectAll = () => {
   if (isAllSelected) {
@@ -105,27 +108,26 @@ const handleSelectAll = () => {
                       <h3 className="font-semibold">
                         {item.name}
                       </h3>
+                      <p className="text-sm text-gray-600">
+  ₱{item.price} / kg
+</p>
+
+<p className="text-sm font-medium">
+  Total: ₱{Number(item.price) * Number(item.quantity)}
+</p>
 
                       {/* UNIT + QUANTITY */}
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
 
                         {/* UNIT SELECT */}
-                        <select
-                          value={item.unit || 'box'}
-                          onChange={(e) => updateUnit(item.id, e.target.value)}
-                          className="border px-2 py-1 rounded text-sm"
-                        >
-                          <option value="box">Box</option>
-                          <option value="pack">Pack</option>
-                          <option value="kg">Kg</option>
-                        </select>
+                        <p className="text-sm">Unit: kg</p>
 
                         {/* - */}
                         <button
                           onClick={() =>
                             updateQuantity(
                               item.id,
-                              item.quantity - (item.unit === 'kg' ? 0.5 : 1)
+                              item.quantity - (0.5)
                             )
                           }
                           className="px-3 border rounded"
@@ -136,7 +138,7 @@ const handleSelectAll = () => {
                         {/* INPUT */}
                         <input
                           type="number"
-                          step={item.unit === 'kg' ? '0.5' : '1'}
+                          step="0.5"
                           value={tempValues[item.id] ?? item.quantity}
                           onChange={(e) =>
                             setTempValues({
@@ -160,7 +162,7 @@ const handleSelectAll = () => {
                           onClick={() =>
                             updateQuantity(
                               item.id,
-                              item.quantity + (item.unit === 'kg' ? 0.5 : 1)
+                              item.quantity + (0.5)
                             )
                           }
                           className="px-3 border rounded"
@@ -211,14 +213,23 @@ const handleSelectAll = () => {
                       </div>
 
                       {/* QTY */}
-                      <div className="text-sm font-medium">
-                        {item.quantity} {item.unit}
-                      </div>
+                      <div className="text-sm text-right flex items-center gap-2 justify-end">
+  <span>{item.quantity} kg</span>
+  <span className="font-medium">
+    ₱{(item.price * item.quantity).toFixed(2)}
+  </span>
+</div>
 
                     </div>
                   ))}
 
                 </div>
+                <div className="border-t pt-3 mt-4">
+  <div className="flex justify-between font-bold text-lg">
+    <span>Total Amount</span>
+    <span>₱{total}</span>
+  </div>
+</div>
 
                 {selectedItems.length > 0 ? (
   <Link

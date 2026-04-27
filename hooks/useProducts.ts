@@ -8,7 +8,9 @@ export interface Product {
   id: string;
   name: string;
   type: string;
-  category: string; // ✅ NEW FIELD
+  category: string;
+  price: number; // 💰 ADD
+  stock: number; // 🔢 ADD
   imageUrl?: string | null;
 }
 
@@ -25,12 +27,14 @@ export function useProducts() {
           const data = doc.data();
 
           return {
-            id: doc.id,
-            name: data.name || '',
-            type: data.type || '',
-            category: data.category || '', // ✅ replaced
-            imageUrl: data.imageUrl ?? null,
-          };
+  id: doc.id,
+  name: data.name || '',
+  type: data.type || '',
+  category: data.category || '',
+  price: data.price ?? 0,   // 💰 ADD
+  stock: data.stock ?? 0,   // 🔢 ADD
+  imageUrl: data.imageUrl ?? null,
+};
         });
 
         setProducts(productsData);

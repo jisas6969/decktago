@@ -28,6 +28,7 @@ const statusColors: Record<string, string> = {
   Delivered: 'bg-[#e6f2f8] text-[#2787b4]',
 };
 
+
 // ✅ STATUS MAP
 const statusMap: Record<string, string> = {
   ready_for_processing: 'Pending',
@@ -120,6 +121,10 @@ export default function OrderDetailPage() {
       </div>
     );
   }
+  const total = order.items.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0
+);
 
   // ✅ SAFE STATUS
   const normalizedStatus = statusMap[order.status] || 'Pending';
@@ -218,16 +223,20 @@ export default function OrderDetailPage() {
 
                 {order.items.map((item) => (
                   <div
-                    key={item.id}
-                    className="flex justify-between border-b py-2"
-                  >
-                    <div>
-                      <p>{item.name}</p>
-                      <p className="text-sm text-gray-500">
-  {item.quantity} {item.unit === 'kg' ? 'kg' : item.unit || 'box'}
-</p>
-                    </div>
-                  </div>
+  key={item.id}
+  className="flex justify-between border-b py-2"
+>
+  <div>
+    <p>{item.name}</p>
+    <p className="text-sm text-gray-500">
+      {item.quantity} kg
+    </p>
+  </div>
+
+  <div className="font-medium">
+    ₱{(item.price * item.quantity).toFixed(2)}
+  </div>
+</div>
                 ))}
               </div>
 
@@ -242,15 +251,19 @@ export default function OrderDetailPage() {
               <div className="space-y-2 mb-4">
   {order.items.map((item) => (
     <div key={item.id} className="flex justify-between text-sm">
-      <span>
-        {item.name} ({item.unit || 'box'})
-      </span>
-      <span>
-  {item.quantity} {item.unit === 'kg' ? 'kg' : ''}
+  <span>{item.name}</span>
+  <span className="flex items-center gap-2">
+  <span>{item.quantity} kg</span>
+  <span>₱{(item.price * item.quantity).toFixed(2)}</span>
 </span>
-    </div>
-  ))}
 </div>
+  ))}  
+</div>
+<div className="border-t pt-3 mt-3 flex justify-between font-bold">
+  <span>Total</span>
+  <span>₱{total.toFixed(2)}</span>
+</div>
+
 
               <div className="text-sm text-gray-600">
   <p>{order.shippingAddress.fullName}</p>

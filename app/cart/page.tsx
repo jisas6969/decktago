@@ -67,16 +67,15 @@ const handleSelectAll = () => {
 
   {/* RIGHT SIDE */}
   <div className="ml-auto mr-107">
-    {selectedItems.length > 1 && (
-      <button
-        onClick={handleDeleteSelected}
-        className="text-red-500 hover:text-red-600"
-        title="Delete selected"
-      >
-        <Trash2 className="w-5 h-5" />
-      </button>
-    )}
-  </div>
+  {selectedItems.length > 1 && (
+    <button
+      onClick={handleDeleteSelected}
+      className="text-red-500 hover:text-red-600 text-sm font-medium"
+    >
+      Delete All
+    </button>
+  )}
+</div>
 
 </div>
 )}

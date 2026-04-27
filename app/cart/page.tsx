@@ -1,5 +1,5 @@
 'use client';
-
+import { Trash2 } from "lucide-react";
 import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,12 @@ export default function CartPage() {
   const total = items
   .filter(item => selectedItems.includes(item.id))
   .reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
+const handleDeleteSelected = async () => {
+  for (const id of selectedItems) {
+    await removeItem(id);
+  }
+  setSelectedItems([]);
+};
 const handleSelectAll = () => {
   if (isAllSelected) {
     setSelectedItems([]);
@@ -45,19 +50,36 @@ const handleSelectAll = () => {
   <h1 className="text-3xl font-bold mb-2">Shopping Cart</h1>
   <p className="text-slate-600">Review and manage your items before checkout</p>
 </div>
-<div className="flex items-center gap-3 mb-3 px-2">
+{items.length > 1 && (
+  <div className="flex items-center mb-3 px-2">
 
-  {/* ✅ SELECT ALL */}
-  <input
-    type="checkbox"
-    checked={isAllSelected}
-    onChange={handleSelectAll}
-    className="w-4 h-4 accent-[#2787b4]"
-  />
+  {/* LEFT SIDE */}
+  <div className="flex items-center gap-3">
+    <input
+      type="checkbox"
+      checked={isAllSelected}
+      onChange={handleSelectAll}
+      className="w-4 h-4 accent-[#2787b4]"
+    />
 
-  <span className="text-sm font-medium">Select All</span>
+    <span className="text-sm font-medium">Select All</span>
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="ml-auto mr-107">
+    {selectedItems.length > 1 && (
+      <button
+        onClick={handleDeleteSelected}
+        className="text-red-500 hover:text-red-600"
+        title="Delete selected"
+      >
+        <Trash2 className="w-5 h-5" />
+      </button>
+    )}
+  </div>
 
 </div>
+)}
 
         {items.length === 0 ? (
   <Card className="p-12 text-center">
@@ -84,7 +106,14 @@ const handleSelectAll = () => {
             <div className="lg:col-span-2 space-y-4">
 
               {items.map((item) => (
-                <Card key={item.id} className="p-4">
+                <Card key={item.id} className="p-4 relative">
+                  <button
+  onClick={() => removeItem(item.id)}
+   className="absolute top-3 right-3 text-red-500 hover:text-red-600"
+  title="Remove item"
+>
+  <Trash2 className="w-5 h-5" />
+</button>
 
                   <div className="flex gap-4 items-center">
 
@@ -172,13 +201,7 @@ const handleSelectAll = () => {
 
                       </div>
 
-                      {/* REMOVE */}
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-500 text-sm mt-2"
-                      >
-                        Remove
-                      </button>
+                      
 
                     </div>
                   </div>

@@ -21,7 +21,8 @@ export default function HomePage() {
 
   const [fullName, setFullName] = useState('');
   const [search, setSearch] = useState('');
-
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [tempValues, setTempValues] = useState<Record<string, string>>({});
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [inventory, setInventory] = useState<Record<string, number>>({});
@@ -67,30 +68,31 @@ export default function HomePage() {
 
   const handleAddToCart = (product: any) => {
   addItem({
-  id: product.id,
-  name: product.name,
-  price: product.price,
-  quantity: 1,
-  image: product.imageUrl,
-  unit: 'kg',
-});
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    quantity: quantities[product.id] ?? 1,
+    image: product.imageUrl,
+    unit: 'kg',
+  });
 
-    toast({
-  duration: 1500,
-  description: (
-    <div className="flex flex-col items-center gap-2">
+  // ✅ RESET AFTER ADD
+  setQuantities((prev) => ({
+    ...prev,
+    [product.id]: 1,
+  }));
 
-      {/* CHECK CIRCLE ICON */}
-      <CheckCircle className="w-10 h-10 text-[#2787b4]" />
-
-      {/* TEXT */}
-      <span className="text-sm font-medium text-white">
-        Added to cart
-      </span>
-
-    </div>
-  ),
-});
+  toast({
+    duration: 1500,
+    description: (
+      <div className="flex flex-col items-center gap-2">
+        <CheckCircle className="w-10 h-10 text-[#2787b4]" />
+        <span className="text-sm font-medium text-white">
+          Added to cart
+        </span>
+      </div>
+    ),
+  });
 };
 
   // 🔥 GROUP DATA
@@ -228,6 +230,65 @@ export default function HomePage() {
 }`}>
   {(inventory[product.id] ?? 0) > 0 ? "Available" : "Unavailable"}
 </p>
+<div className="flex items-center gap-2 mb-3">
+
+  <span className="text-sm">Unit: kg</span>
+
+  {/* - */}
+  <button
+    onClick={() =>
+      setQuantities((prev) => ({
+        ...prev,
+        [product.id]: Math.max((prev[product.id] ?? 1) - 0.5, 0.5),
+      }))
+    }
+    className="px-3 border rounded"
+  >
+    -
+  </button>
+
+  {/* VALUE */}
+  <input
+  type="number"
+  step="0.5"
+  value={tempValues[product.id] ?? quantities[product.id] ?? 1}
+  onChange={(e) =>
+    setTempValues({
+      ...tempValues,
+      [product.id]: e.target.value,
+    })
+  }
+  onBlur={() => {
+    const val = Number(tempValues[product.id]);
+
+    if (val >= 0.5) {
+      setQuantities((prev) => ({
+        ...prev,
+        [product.id]: val,
+      }));
+    }
+
+    const copy = { ...tempValues };
+    delete copy[product.id];
+    setTempValues(copy);
+  }}
+  className="w-16 text-center border rounded"
+/>
+
+  {/* + */}
+  <button
+    onClick={() =>
+      setQuantities((prev) => ({
+        ...prev,
+        [product.id]: (prev[product.id] ?? 1) + 0.5,
+      }))
+    }
+    className="px-3 border rounded"
+  >
+    +
+  </button>
+
+</div>
 
 
   <Button

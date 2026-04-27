@@ -68,13 +68,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const existing = currentItems.find((i) => i.id === product.id);
 
     if (existing) {
-      existing.quantity += 1;
+      existing.quantity += product.quantity;
     } else {
       currentItems.push({
   id: product.id || '',
   name: product.name || 'Unknown',
   price: product.price || 0, // ✅ IMPORTANT
-  quantity: 1,
+  quantity: product.quantity,
   image: product.image || '/placeholder.png',
   unit: 'kg', 
 });

@@ -1,5 +1,5 @@
 'use client';
-import { FacebookAuthProvider } from 'firebase/auth';
+
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -48,10 +48,6 @@ interface AuthContextType {
   user: User;
   isProfileComplete: boolean;
 }>;
-loginWithFacebook: () => Promise<{
-  user: User;
-  isProfileComplete: boolean;
-}>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -97,35 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
-      fullName: user.displayName || '',
-      phoneNumber: '',
-      companyName: '',
-      role: 'CUSTOMER',
-      createdAt: serverTimestamp(),
-    });
-
-    userSnap = await getDoc(userRef);
-  }
-
-  const data = userSnap.data();
-
-  return {
-    user,
-    isProfileComplete: !!data?.companyName,
-  };
-};
-const loginWithFacebook = async () => {
-  const provider = new FacebookAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
-
-  const userRef = doc(db, 'users', user.uid);
-  let userSnap = await getDoc(userRef);
-
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      email: user.email || '',
       fullName: user.displayName || '',
       phoneNumber: '',
       companyName: '',
@@ -202,7 +169,6 @@ const resetPassword = async (email: string) => {
         updateUserData,
          resetPassword,
          loginWithGoogle,
-         loginWithFacebook,
       }}
     >
       {children}

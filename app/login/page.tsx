@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,9 +139,7 @@ export default function LoginPage() {
 </div>
 
 {/* 🔵 GOOGLE LOGIN */}
-<div className="flex justify-center items-center gap-4">
-  
-  {/* GOOGLE */}
+<div className="flex justify-center">
   <button
     onClick={async () => {
       try {
@@ -156,23 +154,6 @@ export default function LoginPage() {
   >
     <img src="/google.png" alt="google" className="w-8 h-8" />
   </button>
-
-  {/* FACEBOOK */}
-  <button
-    onClick={async () => {
-      try {
-        await loginWithFacebook();
-        router.push('/');
-      } catch (err: any) {
-        setError(err.message);
-      }
-    }}
-    className="hover:scale-110 transition"
-    title="Continue with Facebook"
-  >
-    <img src="/facebook.png" alt="facebook" className="w-8 h-8" />
-  </button>
-
 </div>
         </form>
 

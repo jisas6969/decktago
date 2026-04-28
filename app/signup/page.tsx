@@ -27,7 +27,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { signup, logout, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { signup, logout, loginWithGoogle } = useAuth();
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,49 +116,27 @@ export default function SignupPage() {
   </span>
   <div className="flex-1 h-px bg-gray-300"></div>
 </div>
-        <div className="flex justify-center items-center gap-4 mt-2">
-  
-  {/* GOOGLE */}
-  <button
-    type="button"
-    onClick={async () => {
-      try {
-        const res = await loginWithGoogle();
+        <Button
+  type="button"
+  onClick={async () => {
+    try {
 
-        if (!res.isProfileComplete) {
-          router.push('/account');
-        } else {
-          router.push('/');
-        }
-      } catch (err: any) {
-        setError(err.message);
-      }
-    }}
-  >
-    <img src="/google.png" alt="google" className="w-8 h-8" />
-  </button>
+      const res = await loginWithGoogle();
 
-  {/* FACEBOOK */}
-  <button
-    type="button"
-    onClick={async () => {
-      try {
-        const res = await loginWithFacebook();
+if (!res.isProfileComplete) {
+  router.push('/account');
+} else {
+  router.push('/'); // 👉 complete na
+}
 
-        if (!res.isProfileComplete) {
-          router.push('/account');
-        } else {
-          router.push('/');
-        }
-      } catch (err: any) {
-        setError(err.message);
-      }
-    }}
-  >
-    <img src="/facebook.png" alt="facebook" className="w-8 h-8" />
-  </button>
-
-</div>
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }}
+  className="bg-transparent shadow-none hover:bg-transparent p-0 flex justify-center mx-auto"
+>
+  <img src="/google.png" alt="google" className="w-8 h-8" />
+</Button>
       </form>
 
       <div className="mt-6 text-center">

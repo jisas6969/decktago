@@ -13,9 +13,11 @@ export default function ClientLayout({
   const pathname = usePathname();
 
   // 🚫 pages na walang navbar
-  const hideNavbar =
-    pathname === '/login' ||
-    pathname === '/signup';
+  const hideNavbarRoutes = ['/login', '/signup', '/forgot-password'];
+
+const hideNavbar = hideNavbarRoutes.some((route) =>
+  pathname.includes(route)
+);
 
   return (
     <>

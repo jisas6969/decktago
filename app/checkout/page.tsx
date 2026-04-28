@@ -302,15 +302,18 @@ if (!/^09\d{9}$/.test(formData.phone)) {
               </div>
 
             </div>
-          ))}
+            
 
-          <div className="mt-4 pt-4 border-t flex justify-between items-center text-lg font-bold">
-            <span>Total</span>
-            <span className="text-[#2787b4]">
-              ₱ {total.toLocaleString()}
-            </span>
-          </div>
-          
+          ))}
+          <div className="mt-2 pt-2 grid grid-cols-[2fr_1fr_1fr] items-center text-lg font-bold">
+  <span>Total</span>
+  <span></span>
+  <span className="text-right text-[#2787b4]">
+    ₱ {total.toLocaleString()}
+  </span>
+</div>
+
+                   
         </Card>
 
 

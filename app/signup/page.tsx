@@ -27,7 +27,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { signup, logout } = useAuth();
+  const { signup, logout, loginWithGoogle, loginWithFacebook } = useAuth();
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,66 +53,130 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <Card className="w-full max-w-md">
-        <div className="p-8">
-          <h1 className="text-3xl font-bold text-center mb-2">Create Account</h1>
-          <p className="text-center text-slate-600 mb-6">
-            Join us for an amazing shopping experience
-          </p>
+  <div
+    className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center relative"
+    style={{ backgroundImage: "url('/bg.jpg')" }}
+  >
+    {/* 🔥 BLUR */}
+    <div className="absolute inset-0 backdrop-blur-sm"></div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
+    {/* 🔥 CARD */}
+    <div className="relative w-full max-w-md bg-white/90 p-8 rounded-2xl shadow-2xl">
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <h1 className="text-3xl font-bold text-center mb-2">
+        Create Account
+      </h1>
+      <p className="text-center text-slate-600 mb-6">
+        Join us for an amazing shopping experience
+      </p>
+      
 
-            <InputField label="Full Name" value={fullName} setValue={setFullName} />
-            <InputField label="Phone Number" value={phoneNumber} setValue={setPhoneNumber} />
-            <InputField label="Company Name" value={companyName} setValue={setCompanyName} />
-            <InputField label="Email" type="email" value={email} setValue={setEmail} />
-
-            {/* 🔒 PASSWORD */}
-            <PasswordField
-              label="Password"
-              value={password}
-              setValue={setPassword}
-              show={showPassword}
-              toggle={() => setShowPassword(!showPassword)}
-            />
-
-            {/* 🔒 CONFIRM PASSWORD */}
-            <PasswordField
-              label="Confirm Password"
-              value={confirmPassword}
-              setValue={setConfirmPassword}
-              show={showConfirmPassword}
-              toggle={() => setShowConfirmPassword(!showConfirmPassword)}
-            />
-
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={loading}
-            >
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-slate-600">
-              Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                Log in
-              </Link>
-            </p>
-          </div>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mb-3">
+          {error}
         </div>
-      </Card>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+
+        <InputField label="Full Name" value={fullName} setValue={setFullName} />
+        <InputField label="Phone Number" value={phoneNumber} setValue={setPhoneNumber} />
+        <InputField label="Company Name" value={companyName} setValue={setCompanyName} />
+        <InputField label="Email" type="email" value={email} setValue={setEmail} />
+
+        <PasswordField
+          label="Password"
+          value={password}
+          setValue={setPassword}
+          show={showPassword}
+          toggle={() => setShowPassword(!showPassword)}
+        />
+
+        <PasswordField
+          label="Confirm Password"
+          value={confirmPassword}
+          setValue={setConfirmPassword}
+          show={showConfirmPassword}
+          toggle={() => setShowConfirmPassword(!showConfirmPassword)}
+        />
+        
+
+        <Button
+          type="submit"
+          className="w-full h-14 text-white font-semibold rounded-xl bg-[#2787b4] hover:bg-[#1f6f94] transition shadow-md"
+          disabled={loading}
+        >
+          {loading ? 'Creating Account...' : 'Sign Up'}
+        </Button>
+        {/* 🔻 DIVIDER */}
+<div className="flex items-center gap-3 my-6">
+  <div className="flex-1 h-px bg-gray-300"></div>
+  <span className="text-sm text-gray-500 whitespace-nowrap">
+    or sign up with
+  </span>
+  <div className="flex-1 h-px bg-gray-300"></div>
+</div>
+        <div className="flex justify-center items-center gap-4 mt-2">
+  
+  {/* GOOGLE */}
+  <button
+    type="button"
+    onClick={async () => {
+      try {
+        const res = await loginWithGoogle();
+
+        if (!res.isProfileComplete) {
+          router.push('/account');
+        } else {
+          router.push('/');
+        }
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }}
+  >
+    <img src="/google.png" alt="google" className="w-8 h-8" />
+  </button>
+
+  {/* FACEBOOK */}
+  <button
+    type="button"
+    onClick={async () => {
+      try {
+        const res = await loginWithFacebook();
+
+        if (!res.isProfileComplete) {
+          router.push('/account');
+        } else {
+          router.push('/');
+        }
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }}
+  >
+    <img src="/facebook.png" alt="facebook" className="w-8 h-8" />
+  </button>
+
+</div>
+      </form>
+
+      <div className="mt-6 text-center">
+        <p className="text-slate-600">
+          Already have an account?{' '}
+          <Link
+            href="/login"
+            className="font-medium text-[#2787b4] hover:text-[#1f6f94]"
+          >
+            
+            Log in
+          </Link>
+        </p>
+      </div>
+
     </div>
-  );
+  </div>
+);
 }
 
 /* 🔹 INPUT FIELD */

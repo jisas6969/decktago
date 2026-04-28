@@ -1,5 +1,7 @@
 'use client';
-
+import { FacebookAuthProvider } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   User,
@@ -40,7 +42,16 @@ interface AuthContextType {
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
+  loginWithGoogle: () => Promise<{
+  user: User;
+  isProfileComplete: boolean;
+}>;
+loginWithFacebook: () => Promise<{
+  user: User;
+  isProfileComplete: boolean;
+}>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,7 +85,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return unsubscribe;
   }, []);
+  const loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
 
+  const userRef = doc(db, 'users', user.uid);
+  let userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      fullName: user.displayName || '',
+      phoneNumber: '',
+      companyName: '',
+      role: 'CUSTOMER',
+      createdAt: serverTimestamp(),
+    });
+
+    userSnap = await getDoc(userRef);
+  }
+
+  const data = userSnap.data();
+
+  return {
+    user,
+    isProfileComplete: !!data?.companyName,
+  };
+};
+const loginWithFacebook = async () => {
+  const provider = new FacebookAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  const userRef = doc(db, 'users', user.uid);
+  let userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email || '',
+      fullName: user.displayName || '',
+      phoneNumber: '',
+      companyName: '',
+      role: 'CUSTOMER',
+      createdAt: serverTimestamp(),
+    });
+
+    userSnap = await getDoc(userRef);
+  }
+
+  const data = userSnap.data();
+
+  return {
+    user,
+    isProfileComplete: !!data?.companyName,
+  };
+};
+const resetPassword = async (email: string) => {
+  await sendPasswordResetEmail(auth, email);
+};
   // 📝 SIGNUP
   const signup = async (
     email: string,
@@ -129,12 +200,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         updateUserData,
+         resetPassword,
+         loginWithGoogle,
+         loginWithFacebook,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
+
 
 // 🔗 HOOK
 export function useAuth() {

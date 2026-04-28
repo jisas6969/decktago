@@ -1,5 +1,5 @@
 'use client';
-
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/app/context/CartContext';
@@ -24,6 +24,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   // ✅ Close on outside click
   useEffect(() => {
@@ -141,6 +142,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                       onClick={() => {
                         setOpen(false);
                         onLogout();
+router.push('/login');
                       }}
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
                     >

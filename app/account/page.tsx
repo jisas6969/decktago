@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -15,6 +14,9 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export default function AccountPage() {
   const { user, userData, updateUserData, logout } = useAuth();
+
+  const isGoogleUser = user?.providerData?.[0]?.providerId === 'google.com';
+  const isIncomplete = !userData?.companyName || !userData?.phoneNumber;
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -106,14 +108,20 @@ export default function AccountPage() {
         {/* MAIN CONTAINER */}
         <div className="bg-white rounded-2xl shadow-md p-8 border space-y-8">
 
+          {/* WARNING */}
+          {isIncomplete && (
+            <div className="bg-yellow-50 border border-yellow-300 text-yellow-700 px-4 py-3 rounded-xl text-sm">
+              Please complete your profile
+            </div>
+          )}
+
           {/* FULL NAME */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
               Full Name
             </label>
             <input
-              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
@@ -125,8 +133,7 @@ export default function AccountPage() {
               Phone Number
             </label>
             <input
-              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
@@ -138,14 +145,13 @@ export default function AccountPage() {
               Company Name
             </label>
             <input
-              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-              focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+              className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
             />
           </div>
 
-          {/* SAVE BUTTON */}
+          {/* SAVE */}
           <Button
             onClick={handleSave}
             disabled={loading}
@@ -154,13 +160,11 @@ export default function AccountPage() {
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>
 
-          {/* SECURITY */}
-          <div className="border-t pt-6 space-y-6">
+          {/* SECURITY (HIDDEN IF GOOGLE) */}
+          {!isGoogleUser && (
+            <div className="border-t pt-6 space-y-6">
 
-            <h2 className="font-semibold text-gray-700">Security</h2>
-
-            {/* PASSWORD SECTION */}
-            <div className="space-y-4">
+              <h2 className="font-semibold text-gray-700">Security</h2>
 
               {/* CURRENT PASSWORD */}
               <div className="space-y-2">
@@ -170,8 +174,7 @@ export default function AccountPage() {
                 <div className="relative">
                   <input
                     type={showCurrent ? 'text' : 'password'}
-                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                   />
@@ -193,8 +196,7 @@ export default function AccountPage() {
                 <div className="relative">
                   <input
                     type={showNew ? 'text' : 'password'}
-                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                   />
@@ -216,8 +218,7 @@ export default function AccountPage() {
                 <div className="relative">
                   <input
                     type={showConfirm ? 'text' : 'password'}
-                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base
-                    focus:ring-2 focus:ring-[#2787b4] focus:border-[#2787b4] outline-none transition"
+                    className="w-full border border-gray-300 rounded-xl px-5 py-4 text-base"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
@@ -231,7 +232,7 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {/* UPDATE BUTTON */}
+              {/* UPDATE PASSWORD */}
               <Button
                 onClick={handleChangePassword}
                 disabled={loadingPassword}
@@ -241,19 +242,18 @@ export default function AccountPage() {
               </Button>
 
             </div>
+          )}
 
-            {/* LOGOUT */}
-            <Button
-              onClick={logout}
-              className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-4 text-base font-semibold"
-            >
-              Logout
-            </Button>
+          {/* LOGOUT */}
+          <Button
+            onClick={logout}
+            className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-4 text-base font-semibold"
+          >
+            Logout
+          </Button>
 
-          </div>
         </div>
       </div>
     </div>
   );
 }
-

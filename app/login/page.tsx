@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +115,11 @@ export default function LoginPage() {
               </button>
             )}
           </div>
+          <div className="text-right -mt-2">
+  <Link href="/forgot-password" className="text-sm text-[#2787b4] hover:text-[#1f6f94]">
+    Forgot Password?
+  </Link>
+</div>
 
           {/* BUTTON */}
           <Button
@@ -124,6 +129,51 @@ export default function LoginPage() {
           >
             {loading ? 'Logging in...' : 'Login'}
           </Button>
+          {/* 🔻 DIVIDER */}
+<div className="flex items-center gap-3 my-6">
+  <div className="flex-1 h-px bg-gray-300"></div>
+  <span className="text-sm text-slate-500 whitespace-nowrap">
+    or sign in with
+  </span>
+  <div className="flex-1 h-px bg-gray-300"></div>
+</div>
+
+{/* 🔵 GOOGLE LOGIN */}
+<div className="flex justify-center items-center gap-4">
+  
+  {/* GOOGLE */}
+  <button
+    onClick={async () => {
+      try {
+        await loginWithGoogle();
+        router.push('/');
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }}
+    className="hover:scale-110 transition"
+    title="Continue with Google"
+  >
+    <img src="/google.png" alt="google" className="w-8 h-8" />
+  </button>
+
+  {/* FACEBOOK */}
+  <button
+    onClick={async () => {
+      try {
+        await loginWithFacebook();
+        router.push('/');
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }}
+    className="hover:scale-110 transition"
+    title="Continue with Facebook"
+  >
+    <img src="/facebook.png" alt="facebook" className="w-8 h-8" />
+  </button>
+
+</div>
         </form>
 
         <div className="mt-6 text-center">
@@ -132,6 +182,7 @@ export default function LoginPage() {
             <Link href="/signup" className="font-medium text-[#2787b4] hover:text-[#1f6f94]">
               Sign up
             </Link>
+            
           </p>
         </div>
       </div>

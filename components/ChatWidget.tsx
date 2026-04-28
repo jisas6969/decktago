@@ -199,7 +199,7 @@ replyTimeout.current = setTimeout(async () => {
   {/* 🔵 BUTTON (unchanged mo) */}
   <div className="cursor-pointer flex items-center justify-center">
   <img
-    src="/logo.png" // 👉 palitan mo ng logo mo
+    src="/chat.png" // 👉 palitan mo ng logo mo
     alt="chat"
     className="w-15 h-15 transition hover:scale-110 active:scale-95"
   />

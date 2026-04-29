@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+import { Poppins } from 'next/font/google';
+
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import ChatWidget from '@/components/ChatWidget';
 import ClientLayout from './ClientLayout';
 import { Toaster } from "@/components/ui/toaster";
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+});
 
 export const metadata = {
   title: 'DecktaGo',
@@ -21,15 +28,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className={poppins.className}>
         <AuthProvider>
           <CartProvider>
 
             <ClientLayout>{children}</ClientLayout>
 
-            {/* ✅ REQUIRED for toast */}
             <Toaster />
-
             <ChatWidget /> 
 
           </CartProvider>

@@ -126,18 +126,6 @@ useEffect(() => {
       cancelAnimationFrame(rafRef.current);
     };
   }, [visible, measure]);
-  useEffect(() => {
-  if (!isTutorialActive) return;
-
-  document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
-
-  return () => {
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
-  };
-}, [isTutorialActive]);
-
 
   // ─── Finish tutorial (Firestore + cleanup) ───────────────────
   const finishTutorial = useCallback(async () => {

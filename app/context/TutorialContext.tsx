@@ -76,41 +76,41 @@ export type TutorialStepConfig = {
 export const TUTORIAL_STEPS: TutorialStepConfig[] = [
   {
     elementIds: ['add-to-cart-btn', 'quantity-plus', 'quantity-minus'],
-    tooltip: 'Welcome! Browse products, select quantity, and add items to your cart 🛒',
+    tooltip: 'Welcome! Browse products, select quantity, and add items to your cart ',
     page: '/',
     nextLabel: 'Next →',
   },
   {
     elementIds: ['cart-item-demo', 'checkout-btn'],
-    tooltip: 'This is your cart. Review items before checkout ✅',
+    tooltip: 'This is your cart. Review items before checkout ',
     page: '/cart',
     nextLabel: 'Next →',
   },
   {
     elementIds: ['address-section'],
-    tooltip: 'Review your order and delivery address before placing it 💳',
+    tooltip: 'Review your order and delivery address before placing it ',
     page: '/checkout',
     nextLabel: 'Next →',
     beforeNext: 'open-address-modal',
   },
   {
     elementIds: ['address-fullname', 'address-phone', 'address-picker', 'address-submit'],
-    tooltip: 'Fill in your delivery address details 📍',
+    tooltip: 'Fill in your delivery address details ',
     page: '/checkout',
     nextLabel: 'Next →',
     beforeNext: 'close-address-modal',
   },
   {
     elementIds: ['order-card'],
-    tooltip: 'View and track all your orders here 📦',
+    tooltip: 'View and track all your orders here ',
     page: '/orders',
     nextLabel: 'Next →',
   },
   {
     elementIds: ['tracking-progress'],
-    tooltip: 'Track your order status in real time! 🚚',
+    tooltip: 'Track your order status in real time! ',
     page: '/orders/demo-order',
-    nextLabel: 'Finish ✓',
+    nextLabel: 'Finish ',
     isFinal: true,
   },
 ];

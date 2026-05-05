@@ -85,14 +85,26 @@ export default function TutorialOverlay() {
     let attempts = 0;
 
     const tryFind = () => {
-      const firstEl = document.getElementById(currentConfig.elementIds[0]);
-      if (firstEl) {
-        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(measure, 400);
-      } else if (attempts < 30) {
-        attempts++;
-        retryRef.current = setTimeout(tryFind, 200);
-      }
+  const firstEl = document.getElementById(currentConfig.elementIds[0]);
+  if (firstEl) {
+    const rect = firstEl.getBoundingClientRect();
+
+    const isVisible =
+  rect.bottom > 80 && 
+  rect.top < window.innerHeight - 80; 
+
+    if (!isVisible) {
+      const absoluteTop = rect.top + window.scrollY;
+      const OFFSET = window.innerHeight * 0.3;
+
+      window.scrollTo({
+        top: absoluteTop - OFFSET,
+        behavior: 'smooth',
+      });
+    }
+
+    setTimeout(measure, 400);
+  }
     };
 
     retryRef.current = setTimeout(tryFind, 300);
@@ -108,6 +120,7 @@ export default function TutorialOverlay() {
   window.speechSynthesis.cancel(); // stop previous
   window.speechSynthesis.speak(utterance);
 };
+
 useEffect(() => {
   if (!isTutorialActive || !currentConfig) return;
 
@@ -126,6 +139,28 @@ useEffect(() => {
       cancelAnimationFrame(rafRef.current);
     };
   }, [visible, measure]);
+  useEffect(() => {
+  if (!isTutorialActive) return;
+
+  const scrollY = window.scrollY;
+
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+
+  return () => {
+    const y = document.body.style.top;
+
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+
+    window.scrollTo(0, parseInt(y || '0') * -1);
+  };
+}, [isTutorialActive]);
+
 
   // ─── Finish tutorial (Firestore + cleanup) ───────────────────
   const finishTutorial = useCallback(async () => {

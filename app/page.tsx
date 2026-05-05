@@ -12,8 +12,10 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CheckCircle } from "lucide-react";
+import { useTutorial } from '@/hooks/useTutorial';
 
 export default function HomePage() {
+  const { startTutorial, isTutorialActive } = useTutorial();
   const { user, loading: authLoading } = useAuth();
   const { products, loading: productsLoading } = useProducts();
   const { addItem } = useCart();
@@ -42,6 +44,26 @@ export default function HomePage() {
 
   fetchInventory();
 }, []);
+
+
+useEffect(() => {
+  const checkTutorial = async () => {
+    if (!user?.uid) return;
+
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      if (!data.hasSeenTutorial) {
+        startTutorial(); // 🔥 instant show
+      }
+    }
+  };
+
+  checkTutorial();
+}, [user, startTutorial]);
 
   // 🔐 Redirect if not logged in
   useEffect(() => {
@@ -236,13 +258,15 @@ export default function HomePage() {
 
   {/* - */}
   <button
+    id={filteredProducts.indexOf(product) === 0 ? 'quantity-minus' : undefined}
     onClick={() =>
       setQuantities((prev) => ({
         ...prev,
         [product.id]: Math.max((prev[product.id] ?? 1) - 0.5, 0.5),
       }))
     }
-    className="px-3 border rounded"
+    disabled={isTutorialActive}
+    className="px-3 border rounded disabled:opacity-50"
   >
     -
   </button>
@@ -277,13 +301,15 @@ export default function HomePage() {
 
   {/* + */}
   <button
+    id={filteredProducts.indexOf(product) === 0 ? 'quantity-plus' : undefined}
     onClick={() =>
       setQuantities((prev) => ({
         ...prev,
         [product.id]: (prev[product.id] ?? 1) + 0.5,
       }))
     }
-    className="px-3 border rounded"
+    disabled={isTutorialActive}
+    className="px-3 border rounded disabled:opacity-50"
   >
     +
   </button>
@@ -292,8 +318,9 @@ export default function HomePage() {
 
 
   <Button
+  id={filteredProducts.indexOf(product) === 0 ? 'add-to-cart-btn' : undefined}
   onClick={() => handleAddToCart(product)}
-  disabled={(inventory[product.id] ?? 0) === 0}
+  disabled={isTutorialActive || (inventory[product.id] ?? 0) === 0}
   className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white disabled:bg-gray-400"
 >
   {(inventory[product.id] ?? 0) > 0 ? "Add to Cart" : "Out of Stock"}

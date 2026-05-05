@@ -7,11 +7,16 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useTutorial } from '@/hooks/useTutorial';
 
 export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
-  const { items, removeItem, updateQuantity } = useCart();
+  const { items: realItems, removeItem, updateQuantity } = useCart();
   const router = useRouter();
+  const { isTutorialActive, demoCartItem } = useTutorial();
+
+  // 🔥 Demo mode: inject Firestore-fetched demo product
+  const items = isTutorialActive ? [demoCartItem] : realItems;
 
   const [tempValues, setTempValues] = useState<Record<string, string>>({});
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -105,11 +110,13 @@ const handleSelectAll = () => {
             <div className="lg:col-span-2 space-y-4">
 
               {items.map((item) => (
-                <Card key={item.id} className="p-4 relative">
+                <Card id={items.indexOf(item) === 0 ? 'cart-item-demo' : undefined} key={item.id} className="p-4 relative">
                   <button
   onClick={() => removeItem(item.id)}
    className="absolute top-3 right-3 text-red-500 hover:text-red-600"
   title="Remove item"
+  disabled={isTutorialActive}
+  style={isTutorialActive ? { opacity: 0.3, pointerEvents: 'none' } : {}}
 >
   <Trash2 className="w-5 h-5" />
 </button>
@@ -118,9 +125,11 @@ const handleSelectAll = () => {
 
   {/* ✅ CHECKBOX */}
   <input
+    id={items.indexOf(item) === 0 ? 'cart-checkbox' : undefined}
     type="checkbox"
-    checked={selectedItems.includes(item.id)}
-    onChange={() => toggleSelect(item.id)}
+    checked={isTutorialActive ? true : selectedItems.includes(item.id)}
+    onChange={() => !isTutorialActive && toggleSelect(item.id)}
+    disabled={isTutorialActive}
     className="w-4 h-4 accent-[#2787b4]"
   />
 
@@ -269,7 +278,7 @@ const handleSelectAll = () => {
     query: { selected: JSON.stringify(selectedItems) },
   }}
 >
-    <Button className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
+    <Button id="checkout-btn" className="w-full bg-[#2787b4] hover:bg-[#1f6f94] text-white">
       Proceed to Checkout
     </Button>
   </Link>

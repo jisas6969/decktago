@@ -25,6 +25,7 @@ export interface Order {
     fullAddress?: string;
   };
   status: 'Pending' | 'In Production' | 'In Transit' | 'Out for Delivery' | 'Delivered';
+  isCSConfirmed?: boolean;
   createdAt: Date;
 }
 

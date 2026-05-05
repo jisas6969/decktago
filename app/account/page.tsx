@@ -12,6 +12,8 @@ import {
 
 import { Eye, EyeOff } from 'lucide-react';
 
+
+
 export default function AccountPage() {
   const { user, userData, updateUserData, logout } = useAuth();
 
@@ -33,7 +35,7 @@ export default function AccountPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loadingPassword, setLoadingPassword] = useState(false);
-
+  
   useEffect(() => {
     if (userData) {
       setFullName(userData.fullName || '');
@@ -94,6 +96,7 @@ export default function AccountPage() {
   if (!user) {
     return <p className="p-6">Please login first.</p>;
   }
+  
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

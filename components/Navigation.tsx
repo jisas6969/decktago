@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/app/context/CartContext';
 import { User } from 'firebase/auth';
 import { usePathname } from 'next/navigation';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import {
   ShoppingCart,
   Package,
@@ -22,6 +24,8 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
   const cartCount = items.length;
 
   const [open, setOpen] = useState(false);
+  const [hasOrderUpdate, setHasOrderUpdate] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -45,6 +49,38 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  // 🔔 Real-time order update listener
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'orders'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      // Skip initial load (prevent false notification)
+      if (isFirstLoad) {
+        setIsFirstLoad(false);
+        return;
+      }
+
+      let hasUpdate = false;
+
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'modified') {
+          hasUpdate = true;
+        }
+      });
+
+      if (hasUpdate) {
+        setHasOrderUpdate(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user, isFirstLoad]);
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -78,15 +114,22 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               <Link href="/cart" className="relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#2787b4] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-1 bg-red-500  text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </Link>
 
               {/* 📦 ORDERS */}
-              <Link href="/orders">
+              <Link
+                href="/orders"
+                className="relative"
+                onClick={() => setHasOrderUpdate(false)}
+              >
                 <Package className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
+                {hasOrderUpdate && (
+                  <span className="absolute -top-2 -right-1 bg-red-500 w-3 h-3 rounded-full" />
+                )}
               </Link>
 
               {/* 👤 ACCOUNT */}
@@ -110,11 +153,19 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
 
                     <Link href="/orders">
                       <div
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setOpen(false);
+                          setHasOrderUpdate(false);
+                        }}
+                        className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       >
-                        <Package size={16} />
-                        Orders
+                        <div className="flex items-center gap-2">
+                          <Package size={16} />
+                          Orders
+                        </div>
+                        {hasOrderUpdate && (
+                          <span className="bg-red-500 w-2.5 h-2.5 rounded-full" />
+                        )}
                       </div>
                     </Link>
 
@@ -130,7 +181,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                         </div>
 
                         {cartCount > 0 && (
-                          <span className="bg-[#2787b4] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          <span className="bg-red-500  text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                             {cartCount}
                           </span>
                         )}

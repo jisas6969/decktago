@@ -132,3 +132,37 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* ─── Tutorial Spotlight Animations ─── */
+@keyframes tutorialPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(39, 135, 180, 0.25), 0 0 30px rgba(39, 135, 180, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(39, 135, 180, 0.15), 0 0 50px rgba(39, 135, 180, 0.4); }
+}
+
+.tutorial-spotlight-ring {
+  animation: tutorialPulse 2s ease-in-out infinite;
+}
+
+.tutorial-tooltip {
+  animation: tutorialFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes tutorialFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.tutorial-overlay-root {
+  animation: tutorialOverlayIn 0.3s ease forwards;
+}
+
+@keyframes tutorialOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

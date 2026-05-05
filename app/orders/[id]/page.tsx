@@ -9,6 +9,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Order } from '@/hooks/useOrders';
+import { useTutorial } from '@/hooks/useTutorial';
 
 // ✅ STEPS
 const statusSteps = [
@@ -52,14 +53,25 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { isTutorialActive, demoOrder } = useTutorial();
 
   // ✅ FIXED PARAMS (NO ERROR)
   const params = useParams();
   const orderId = params.id as string;
 
-  // 🔥 REAL-TIME LISTENER
+  // 🔥 Demo mode: use fake order data
+  useEffect(() => {
+    if (isTutorialActive && orderId === 'demo-order') {
+      setOrder(demoOrder as any);
+      setLoading(false);
+      return;
+    }
+  }, [isTutorialActive, orderId]);
+
+  // 🔥 REAL-TIME LISTENER (skip for demo)
   useEffect(() => {
     if (!user || !orderId) return;
+    if (isTutorialActive && orderId === 'demo-order') return;
 
     const unsubscribe = onSnapshot(doc(db, 'orders', orderId), (docSnap) => {
       if (!docSnap.exists()) {
@@ -86,7 +98,7 @@ export default function OrderDetailPage() {
     });
 
     return () => unsubscribe();
-  }, [user, orderId]);
+  }, [user, orderId, isTutorialActive]);
 
   const handleLogout = async () => {
     await logout();
@@ -170,7 +182,7 @@ export default function OrderDetailPage() {
               </div>
 
               {/* TRACKING */}
-              <div className="mb-8">
+              <div id="tracking-progress" className="mb-8">
                 <h2 className="font-semibold mb-4">Tracking Progress</h2>
 
                 <div className="space-y-4">

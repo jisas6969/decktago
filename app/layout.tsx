@@ -8,6 +8,8 @@ import { CartProvider } from './context/CartContext';
 import ChatWidget from '@/components/ChatWidget';
 import ClientLayout from './ClientLayout';
 import { Toaster } from "@/components/ui/toaster";
+import TutorialOverlay from '@/components/TutorialOverlay';
+import { TutorialProvider } from '@/app/context/TutorialContext';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -29,16 +31,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.className}>
-        <AuthProvider>
-          <CartProvider>
+       <AuthProvider>
+  <CartProvider>
 
-            <ClientLayout>{children}</ClientLayout>
+    <TutorialProvider> 
 
-            <Toaster />
-            <ChatWidget /> 
+      <ClientLayout>
+        {children}
+        <TutorialOverlay />
+      </ClientLayout>
 
-          </CartProvider>
-        </AuthProvider>
+    </TutorialProvider>
+
+    <Toaster />
+    <ChatWidget />
+
+  </CartProvider>
+</AuthProvider>
       </body>
     </html>
   );

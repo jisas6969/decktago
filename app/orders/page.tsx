@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTutorial } from '@/hooks/useTutorial';
 
 const statusColors: Record<string, string> = {
   Pending: 'bg-[#e6f2f8] text-[#2787b4]',
@@ -17,8 +18,12 @@ const statusColors: Record<string, string> = {
 
 export default function OrdersPage() {
   const { user, logout, loading: authLoading } = useAuth();
-  const { orders, loading: ordersLoading } = useOrders();
+  const { orders: realOrders, loading: ordersLoading } = useOrders();
   const router = useRouter();
+  const { isTutorialActive, demoOrder } = useTutorial();
+
+  // 🔥 Demo mode: inject Firestore-fetched demo order
+  const orders = isTutorialActive ? [demoOrder as any] : realOrders;
 
   const handleLogout = async () => {
     await logout();
@@ -82,7 +87,7 @@ export default function OrdersPage() {
           <div className="space-y-4">
             {orders.map((order) => (
               <Link key={order.id} href={`/orders/${order.id}`}>
-                <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <Card id={orders.indexOf(order) === 0 ? 'order-card' : undefined} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">

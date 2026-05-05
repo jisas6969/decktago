@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phoneNumber: '',
       companyName: '',
       role: 'CUSTOMER',
+      hasSeenTutorial: false,
       createdAt: serverTimestamp(),
     });
 
@@ -124,15 +125,16 @@ const resetPassword = async (email: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const newUser = userCredential.user;
 
-    const newUserData: UserData = {
-      uid: newUser.uid,
-      email: newUser.email!,
-      fullName,
-      phoneNumber,
-      companyName,
-      role: 'CUSTOMER',
-      createdAt: serverTimestamp() as Timestamp,
-    };
+    const newUserData = {
+  uid: newUser.uid,
+  email: newUser.email!,
+  fullName,
+  phoneNumber,
+  companyName,
+  role: 'CUSTOMER',
+  hasSeenTutorial: false, // 🔥 ADD THIS
+  createdAt: serverTimestamp() as Timestamp,
+};
 
     await setDoc(doc(db, 'users', newUser.uid), newUserData);
     setUserData(newUserData);

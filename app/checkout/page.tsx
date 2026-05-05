@@ -19,11 +19,18 @@ import {
   setDoc,
   getDoc,
 } from 'firebase/firestore';
+import { useTutorial } from '@/hooks/useTutorial';
+import { DEMO_ADDRESS } from '@/app/context/TutorialContext';
 
 export default function CheckoutPage() {
   const { user, updateUserData } = useAuth();
-  const { items, clearCart } = useCart();
+  const { items: realItems, clearCart } = useCart();
   const router = useRouter();
+
+  const { isTutorialActive, demoCartItem, shouldOpenAddressModal, setShouldOpenAddressModal, shouldCloseAddressModal, setShouldCloseAddressModal } = useTutorial();
+
+  // 🔥 Demo mode: inject Firestore-fetched demo product
+  const items = isTutorialActive ? [demoCartItem] : realItems;
 
   const [loading, setLoading] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -61,6 +68,51 @@ const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion)
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  // 🔥 Tutorial: auto-fill demo address on mount
+  useEffect(() => {
+    if (isTutorialActive) {
+      setFormData({
+        fullName: DEMO_ADDRESS.fullName,
+        phone: DEMO_ADDRESS.phone,
+        province: DEMO_ADDRESS.province,
+        city: DEMO_ADDRESS.city,
+        barangay: DEMO_ADDRESS.barangay,
+        postalCode: DEMO_ADDRESS.postalCode,
+        street: DEMO_ADDRESS.street,
+      });
+      setSelectedAddress(DEMO_ADDRESS);
+    }
+  }, [isTutorialActive]);
+
+  // 🔥 Tutorial: open address modal when signaled
+  useEffect(() => {
+    if (shouldOpenAddressModal) {
+      setFormData({
+        fullName: isTutorialActive ? DEMO_ADDRESS.fullName : '',
+        phone: isTutorialActive ? DEMO_ADDRESS.phone : '',
+        province: isTutorialActive ? DEMO_ADDRESS.province : '',
+        city: isTutorialActive ? DEMO_ADDRESS.city : '',
+        barangay: isTutorialActive ? DEMO_ADDRESS.barangay : '',
+        postalCode: isTutorialActive ? DEMO_ADDRESS.postalCode : '',
+        street: isTutorialActive ? DEMO_ADDRESS.street : '',
+      });
+      setIsEditing(false);
+      setEditingId(null);
+      setShowAddressModal(true);
+      setShouldOpenAddressModal(false);
+    }
+  }, [shouldOpenAddressModal, setShouldOpenAddressModal, isTutorialActive]);
+
+  // 🔥 Tutorial: close address modal when signaled
+  useEffect(() => {
+    if (shouldCloseAddressModal) {
+      setShowAddressModal(false);
+      setShowPicker(false);
+      setShouldCloseAddressModal(false);
+    }
+  }, [shouldCloseAddressModal, setShouldCloseAddressModal]);
+
 
   // ✅ LOAD ADDRESSES
   useEffect(() => {
@@ -200,7 +252,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 </div>
 
         {/* ================= DELIVERY ADDRESS ================= */}
-        <Card className="p-5">
+        <Card id="address-section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold mb-3 text-[#2787b4]">
 
   <MapPin className="w-5 h-5" />
@@ -216,6 +268,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
               </p>
 
               <button
+                id="add-address-btn"
                 onClick={() => {
   setFormData({
     fullName: '',
@@ -324,7 +377,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   {/* PLACE ORDER */}
   <Button
     onClick={handleSubmit}
-    disabled={!selectedAddress || loading}
+    disabled={isTutorialActive || !selectedAddress || loading}
     className="flex-1 bg-[#2787b4] hover:bg-[#1f6f94] text-white"
   >
     {loading ? 'Placing Order...' : 'Place Order'}
@@ -459,6 +512,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
     <div>
       <label className="text-sm text-gray-600">Full Name</label>
       <Input
+        id="address-fullname"
         name="fullName"
         value={formData.fullName}
         onChange={handleChange}
@@ -468,6 +522,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
     <div>
       <label className="text-sm text-gray-600">Phone</label>
       <Input
+        id="address-phone"
         name="phone"
         value={formData.phone}
         onChange={handleChange}
@@ -483,6 +538,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   </label>
 
   <button
+    id="address-picker"
     onClick={() => {
   setShowPicker(true);
   setStep('region');
@@ -557,6 +613,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 </button>
 
               <button
+                id="address-submit"
                 onClick={handleSaveAddress}
                 className="bg-[#2787b4] text-white px-6 py-2 rounded"
               >

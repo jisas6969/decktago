@@ -8,6 +8,7 @@ import { useAuth } from '@/app/context/AuthContext';
 export interface Order {
   id: string;
   userId: string;
+  
 
   items: Array<{
     id: string;

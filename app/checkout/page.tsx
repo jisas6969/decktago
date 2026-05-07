@@ -58,6 +58,7 @@ const [selectedProvinceName, setSelectedProvinceName] = useState('');
 const [selectedCityName, setSelectedCityName] = useState('');
 const hasProvinces = provincesList.some((p: any) => p.regionCode === selectedRegion);
 const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('delivery');
+
   
 
   const [formData, setFormData] = useState({

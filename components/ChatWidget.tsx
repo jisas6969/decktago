@@ -1,10 +1,15 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { Send, Check } from 'lucide-react';
+import {
+  Send,
+  Check,
+  ImagePlus
+} from 'lucide-react';
+import axios from 'axios';
 import { getAutoReply, getWelcomeMessage } from '@/lib/chatbot';
 import { getDoc } from "firebase/firestore"
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, MoreVertical, X } from 'lucide-react';
+import { MoreVertical, X } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -29,6 +34,7 @@ type ChatMessage = {
   orderItems?: any[];
   orderTotal?: number;
   orderId?: string;
+  image?: string;
 };
 
 
@@ -38,6 +44,8 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -136,6 +144,45 @@ if (!hasSalesMessage && chatId && newMessages.length === 0) {
       { isRead: true }
     );
   }
+};
+const handleImageUpload = async (file: File) => {
+  if (!chatId) return;
+
+  try {
+    setUploading(true);
+    const data = new FormData();
+
+    data.append('file', file);
+
+    data.append(
+      'upload_preset',
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
+
+    const res = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      data
+    );
+
+    const imageUrl = res.data.secure_url;
+
+    await addDoc(
+      collection(db, 'chats', chatId, 'messages'),
+      {
+        sender: 'customer',
+        image: imageUrl,
+        createdAt: new Date(),
+        isRead: false,
+      }
+    );
+    setUploading(false);
+    bottomRef.current?.scrollIntoView({
+  behavior: 'smooth',
+});
+  } catch (err) {
+  setUploading(false);
+  console.error(err);
+}
 };
 
   const sendMessage = async () => {
@@ -263,7 +310,6 @@ const handleLongPressEnd = () => {
 };
 
   const isCustomer = m.sender === 'customer';
-  const isTopMessage = index < 2;
 
   const currentTime = m.createdAt?.seconds
     ? m.createdAt.seconds * 1000
@@ -378,15 +424,23 @@ const showTime =
     handleLongPressStart(m.id)
   }
   onMouseUp={handleLongPressEnd}
-  className={`px-3 py-1.5 rounded-2xl text-sm transition ${
+  className={`text-sm transition ${
+  m.image
+    ? ''
+    : 'px-3 py-1.5 rounded-2xl'
+} ${
   m.orderId
     ? 'cursor-pointer hover:scale-[1.01]'
     : ''
 } ${
-    isCustomer
-      ? 'bg-[#2787b4] text-white'
+  isCustomer
+    ? m.image
+      ? ''
+      : 'bg-[#2787b4] text-white'
+    : m.image
+      ? ''
       : 'bg-gray-200 text-gray-800'
-  }`}
+}`}
 >
       {m.orderItems ? (
 
@@ -442,6 +496,15 @@ const showTime =
 
   </div>
 
+) : m.image ? (
+
+  <img
+  src={m.image}
+  alt="attachment"
+  onClick={() => setPreviewImage(m.image!)}
+  className="max-w-[220px] rounded-2xl object-cover shadow cursor-pointer hover:opacity-95 transition"
+/>
+
 ) : (
   m.text
 )}
@@ -465,6 +528,29 @@ const showTime =
               )}
 
               <div className="flex items-center gap-2">
+                <label
+  className={`cursor-pointer p-2 ${
+    uploading
+      ? 'opacity-50 pointer-events-none'
+      : 'text-gray-400 hover:text-[#2787b4]'
+  }`}
+>
+
+  <ImagePlus size={20} />
+
+  <input
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={async (e) => {
+      const file = e.target.files?.[0];
+
+      if (file) {
+        await handleImageUpload(file);
+      }
+    }}
+  />
+</label>
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
@@ -514,6 +600,28 @@ const showTime =
           </div>
         </div>
       )}
+      {previewImage && (
+  <div
+    className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center p-4"
+    onClick={() => setPreviewImage(null)}
+  >
+
+    <button
+      className="absolute top-4 right-4 text-white text-3xl"
+      onClick={() => setPreviewImage(null)}
+    >
+      ✕
+    </button>
+
+    <img
+      src={previewImage}
+      alt="preview"
+      className="max-w-full max-h-full rounded-xl"
+      onClick={(e) => e.stopPropagation()}
+    />
+
+  </div>
+)}
     </>
   );
 }

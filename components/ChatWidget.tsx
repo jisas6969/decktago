@@ -44,11 +44,15 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+const [previewIndex, setPreviewIndex] = useState(0);
+const [showViewer, setShowViewer] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef =
@@ -137,18 +141,51 @@ if (!hasSalesMessage && chatId && newMessages.length === 0) {
 
     setMenuOpenId(null);
   };
+  
 
   window.addEventListener('click', close);
   return () => window.removeEventListener('click', close);
 }, []);
-  const markAsRead = async () => {
+  useEffect(() => {
+  if (!showViewer) return;
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      setPreviewIndex((prev) =>
+        prev < previewImages.length - 1
+          ? prev + 1
+          : prev
+      );
+    }
+
+    if (e.key === 'ArrowLeft') {
+      setPreviewIndex((prev) =>
+        prev > 0
+          ? prev - 1
+          : prev
+      );
+    }
+
+    if (e.key === 'Escape') {
+      setShowViewer(false);
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+  };
+}, [showViewer, previewImages.length]);
+
+const markAsRead = async () => {
   if (!chatId) return;
 
   const unreadMessages = messages.filter(
-  (m) =>
-    m.sender === 'sales' &&
-    !m.isRead
-);
+    (m) =>
+      m.sender === 'sales' &&
+      !m.isRead
+  );
 
   for (const m of unreadMessages) {
     await updateDoc(
@@ -157,44 +194,52 @@ if (!hasSalesMessage && chatId && newMessages.length === 0) {
     );
   }
 };
-const handleImageUpload = async (file: File) => {
-  if (!chatId) return;
+const handleImageUpload = async () => {
+  if (!chatId || selectedImages.length === 0) return;
 
   try {
     setUploading(true);
-    const data = new FormData();
 
-    data.append('file', file);
+    for (const file of selectedImages) {
+      const data = new FormData();
 
-    data.append(
-      'upload_preset',
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-    );
+      data.append('file', file);
 
-    const res = await axios.post(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      data
-    );
+      data.append(
+        'upload_preset',
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+      );
 
-    const imageUrl = res.data.secure_url;
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        data
+      );
 
-    await addDoc(
-      collection(db, 'chats', chatId, 'messages'),
-      {
-        sender: 'customer',
-        image: imageUrl,
-        createdAt: new Date(),
-        isRead: false,
-      }
-    );
-    setUploading(false);
+      const imageUrl = res.data.secure_url;
+
+      await addDoc(
+        collection(db, 'chats', chatId, 'messages'),
+        {
+          sender: 'customer',
+          image: imageUrl,
+          createdAt: new Date(),
+          isRead: false,
+        }
+      );
+    }
+
+    setSelectedImages([]);
+    setImagePreviews([]);
+
     bottomRef.current?.scrollIntoView({
-  behavior: 'smooth',
-});
+      behavior: 'smooth',
+    });
+
   } catch (err) {
-  setUploading(false);
-  console.error(err);
-}
+    console.error(err);
+  } finally {
+    setUploading(false);
+  }
 };
 
   const sendMessage = async () => {
@@ -462,9 +507,9 @@ const showTime =
     <p className="font-semibold flex items-center justify-between">
   <span>New Order Placed</span>
 
-  <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full">
-    Tap to view
-  </span>
+  <span className="text-[10px] opacity-80">
+  Tap to view
+</span>
 </p>
 
     {m.orderItems.map((item: any) => (
@@ -514,7 +559,17 @@ const showTime =
   <img
   src={m.image}
   alt="attachment"
-  onClick={() => setPreviewImage(m.image!)}
+  onClick={() => {
+  const allImages = messages
+    .filter((msg) => msg.image)
+    .map((msg) => msg.image!);
+
+  const clickedIndex = allImages.indexOf(m.image!);
+
+  setPreviewImages(allImages);
+  setPreviewIndex(clickedIndex);
+  setShowViewer(true);
+}}
   className="max-w-[220px] rounded-2xl object-cover shadow cursor-pointer hover:opacity-95 transition"
 />
 
@@ -533,14 +588,47 @@ const showTime =
             </div>
 
             {/* INPUT */}
-            <div className="p-2 border-t bg-white">
-              {editingId && (
-                <div className="text-xs text-gray-500 px-2 mb-1">
-                  Editing message...
-                </div>
-              )}
+<div className="p-2 border-t bg-white">
 
-              <div className="flex items-center gap-2">
+  {/* 🔥 IMAGE PREVIEW DITO */}
+  {imagePreviews.length > 0 && (
+    <div className="flex gap-2 overflow-x-auto overflow-y-visible px-2 pt-3 pb-2">
+      {imagePreviews.map((src, index) => (
+        <div
+  key={index}
+  className="relative overflow-visible shrink-0"
+>
+          <img
+            src={src}
+            className="w-16 h-16 rounded-lg object-cover"
+          />
+
+          <button
+            onClick={() => {
+              setSelectedImages((prev) =>
+                prev.filter((_, i) => i !== index)
+              );
+
+              setImagePreviews((prev) =>
+                prev.filter((_, i) => i !== index)
+              );
+            }}
+            className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-black text-white rounded-full w-5 h-5 text-xs flex items-center justify-center z-10"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+
+  {editingId && (
+    <div className="text-xs text-gray-500 px-2 mb-1">
+      Editing message...
+    </div>
+  )}
+
+  <div className="flex items-center gap-2">
                 <label
   className={`cursor-pointer p-2 ${
     uploading
@@ -552,22 +640,39 @@ const showTime =
   <ImagePlus size={20} />
 
   <input
-    type="file"
-    accept="image/*"
-    className="hidden"
-    onChange={async (e) => {
-      const file = e.target.files?.[0];
+  type="file"
+  accept="image/*"
+  multiple
+  className="hidden"
+  onChange={(e) => {
+    const files = Array.from(e.target.files || []);
 
-      if (file) {
-        await handleImageUpload(file);
-      }
-    }}
-  />
+    if (!files.length) return;
+
+    setSelectedImages((prev) => [...prev, ...files]);
+
+    const previews = files.map((file) =>
+      URL.createObjectURL(file)
+    );
+
+    setImagePreviews((prev) => [...prev, ...previews]);
+  }}
+/>
 </label>
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                  onKeyDown={async (e) => {
+  if (e.key === 'Enter') {
+    if (selectedImages.length > 0) {
+      await handleImageUpload();
+    }
+
+    if (text.trim()) {
+      await sendMessage();
+    }
+  }
+}}
                   className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
                   placeholder="Type your message..."
                 />
@@ -585,8 +690,16 @@ const showTime =
                 )}
 
                 <button
-  onClick={sendMessage}
-  disabled={!text.trim()}
+  onClick={async () => {
+  if (selectedImages.length > 0) {
+    await handleImageUpload();
+  }
+
+  if (text.trim()) {
+    await sendMessage();
+  }
+}}
+  disabled={!text.trim() && imagePreviews.length === 0}
   className="p-2 flex items-center justify-center transition duration-200"
 >
   {editingId ? (
@@ -599,10 +712,10 @@ const showTime =
       size={20}
       className={`rotate-45 transition duration-200
         ${
-          text.trim()
-            ? 'text-[#2787b4] hover:text-[#1f6f94] hover:scale-110 hover:-translate-y-[1px]'
-            : 'text-gray-300'
-        }
+  text.trim() || imagePreviews.length > 0
+    ? 'text-[#2787b4] hover:text-[#1f6f94] hover:scale-110 hover:-translate-y-[1px]'
+    : 'text-gray-300'
+}
       `}
     />
   )}
@@ -613,28 +726,72 @@ const showTime =
           </div>
         </div>
       )}
-      {previewImage && (
-  <div
-    className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center p-4"
-    onClick={() => setPreviewImage(null)}
-  >
+      {showViewer && (
+  <div className="fixed inset-0 z-[999] bg-black/90 flex flex-col">
 
-    <button
-      className="absolute top-4 right-4 text-white text-3xl"
-      onClick={() => setPreviewImage(null)}
-    >
-      ✕
-    </button>
+    {/* TOP BAR */}
+    <div className="flex items-center justify-end p-4">
+      <button
+        className="text-white text-3xl"
+        onClick={() => setShowViewer(false)}
+      >
+        ✕
+      </button>
+    </div>
 
-    <img
-      src={previewImage}
-      alt="preview"
-      className="max-w-full max-h-full rounded-xl"
-      onClick={(e) => e.stopPropagation()}
-    />
+    {/* IMAGE AREA */}
+    <div className="flex-1 flex items-center justify-center relative px-6">
 
-  </div>
+      {/* PREV */}
+      {previewIndex > 0 && (
+        <button
+          onClick={() =>
+            setPreviewIndex((prev) => prev - 1)
+          }
+          className="absolute left-4 text-white text-5xl"
+        >
+          ‹
+        </button>
+      )}
+
+      <img
+        src={previewImages[previewIndex]}
+        alt="preview"
+        className="max-h-[75vh] max-w-full object-contain rounded-xl"
+      />
+
+      {/* NEXT */}
+      {previewIndex < previewImages.length - 1 && (
+        <button
+          onClick={() =>
+            setPreviewIndex((prev) => prev + 1)
+          }
+          className="absolute right-4 text-white text-5xl"
+        >
+          ›
+        </button>
+      )}
+    </div>
+
+    {/* THUMBNAILS */}
+    <div className="flex gap-2 overflow-x-auto p-4 justify-center">
+      {previewImages.map((img, index) => (
+        <img
+          key={index}
+          src={img}
+          onClick={() => setPreviewIndex(index)}
+          className={`w-16 h-16 object-cover rounded cursor-pointer border-2 transition ${
+            previewIndex === index
+              ? 'border-white'
+              : 'border-transparent opacity-60'
+          }`}
+        />
+      ))}
+    </div>
+
+   </div>
 )}
+
     </>
   );
 }

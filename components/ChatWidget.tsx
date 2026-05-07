@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { Send, Check } from 'lucide-react';
 import { getAutoReply, getWelcomeMessage } from '@/lib/chatbot';
 import { getDoc } from "firebase/firestore"
@@ -18,12 +19,24 @@ import {
   increment,
 } from 'firebase/firestore';
 import { useAuth } from '@/app/context/AuthContext';
+type ChatMessage = {
+  id: string;
+  text?: string;
+  sender?: string;
+  createdAt?: any;
+  isRead?: boolean;
+
+  orderItems?: any[];
+  orderTotal?: number;
+  orderId?: string;
+};
+
 
 export default function ChatWidget() {
+  const router = useRouter();
   const { user, userData } = useAuth();
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -38,7 +51,7 @@ export default function ChatWidget() {
   if (!user?.uid || !userData) return;
 
   const createChatIfNotExists = async () => {
-    const ref = doc(db, 'chats', chatId);
+    const ref = doc(db, 'chats', chatId!);
     const snap = await getDoc(ref);
 
     // 🔴 CREATE ONLY IF NOT EXIST
@@ -54,7 +67,7 @@ export default function ChatWidget() {
   };
 
   createChatIfNotExists();
-}, [chatId, userData]);
+}, [user?.uid, userData]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -65,10 +78,10 @@ export default function ChatWidget() {
     );
 
     const unsub = onSnapshot(q, async (snap) => {
-  const newMessages = snap.docs.map((d) => ({
-    id: d.id,
-    ...d.data(),
-  }));
+  const newMessages: ChatMessage[] = snap.docs.map((d) => ({
+  id: d.id,
+  ...(d.data() as Omit<ChatMessage, 'id'>),
+}));
   const hasSalesMessage = newMessages.some(m => m.sender === 'sales');
 
 if (!hasSalesMessage && chatId && newMessages.length === 0) {
@@ -299,7 +312,7 @@ const showTime =
   <div className="flex items-end gap-1 max-w-[75%]">
 
     {/* ⋮ BUTTON (LEFT, DIKIT) */}
-    {isCustomer && (
+    {isCustomer && !m.orderItems && (
       <div className="relative">
         <button
   onClick={(e) => {
@@ -317,7 +330,7 @@ const showTime =
               <button
                 onClick={() => {
                   setEditingId(m.id);
-                  setText(m.text);
+                  setText(m.text || '');
                   setMenuOpenId(null);
                 }}
                 className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
@@ -344,17 +357,94 @@ const showTime =
 
     {/* 💬 BUBBLE */}
     <div
-  onTouchStart={() => isCustomer && handleLongPressStart(m.id)}
-onTouchEnd={handleLongPressEnd}
-onMouseDown={() => isCustomer && handleLongPressStart(m.id)}
-onMouseUp={handleLongPressEnd}
-  className={`px-3 py-1.5 rounded-2xl text-sm ${
+  onClick={() => {
+    if (m.orderId) {
+  setOpen(false);
+
+  setTimeout(() => {
+    router.push(`/orders/${m.orderId}`);
+  }, 150);
+}
+  }}
+  onTouchStart={() =>
+    isCustomer &&
+    !m.orderItems &&
+    handleLongPressStart(m.id)
+  }
+  onTouchEnd={handleLongPressEnd}
+  onMouseDown={() =>
+    isCustomer &&
+    !m.orderItems &&
+    handleLongPressStart(m.id)
+  }
+  onMouseUp={handleLongPressEnd}
+  className={`px-3 py-1.5 rounded-2xl text-sm transition ${
+  m.orderId
+    ? 'cursor-pointer hover:scale-[1.01]'
+    : ''
+} ${
     isCustomer
       ? 'bg-[#2787b4] text-white'
       : 'bg-gray-200 text-gray-800'
   }`}
 >
-      {m.text}
+      {m.orderItems ? (
+
+  <div className="space-y-3">
+
+    <p className="font-semibold flex items-center justify-between">
+  <span>New Order Placed</span>
+
+  <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full">
+    Tap to view
+  </span>
+</p>
+
+    {m.orderItems.map((item: any) => (
+      <div
+        key={item.id}
+        className="flex gap-3 border rounded-xl p-2 bg-white/10"
+      >
+
+        <img
+          src={item.image || '/placeholder.png'}
+          alt={item.name}
+          className="w-14 h-14 rounded object-cover"
+        />
+
+        <div className="flex-1">
+
+          <p className="font-medium">
+            {item.name}
+          </p>
+
+          <p className="text-xs opacity-80">
+            Qty: {item.quantity} kg
+          </p>
+
+          <p className="text-xs opacity-80">
+            ₱ {item.price.toLocaleString()}
+          </p>
+
+          <p className="text-xs font-semibold">
+            Subtotal:
+            ₱ {(item.price * item.quantity).toLocaleString()}
+          </p>
+
+        </div>
+
+      </div>
+    ))}
+
+    <div className="font-bold pt-2 border-t">
+      Total: ₱ {m.orderTotal?.toLocaleString()}
+    </div>
+
+  </div>
+
+) : (
+  m.text
+)}
     </div>
 
   </div>

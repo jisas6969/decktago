@@ -31,26 +31,81 @@ export default function SignupPage() {
   
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+  // 🔹 Full Name Validation
+  if (fullName.trim().length < 3) {
+    setError('Full name must be at least 3 characters');
+    return;
+  }
+
+  // 🔹 Phone Number Validation
+  const phoneRegex = /^[0-9]{11}$/;
+
+  if (!phoneRegex.test(phoneNumber)) {
+    setError('Phone number must be 11 digits');
+    return;
+  }
+
+  // 🔹 Company Name Validation
+  if (companyName.trim().length < 2) {
+    setError('Company name is required');
+    return;
+  }
+
+  // 🔹 Email Validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    setError('Please enter a valid email address');
+    return;
+  }
+
+  // 🔹 Password Validation
+  if (password.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
+
+  // 🔹 Confirm Password
+  if (password !== confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    await signup(
+      email,
+      password,
+      fullName,
+      phoneNumber,
+      companyName
+    );
+
+    await logout();
+    router.push('/login');
+
+  } catch (err: any) {
+
+    let message = 'Failed to create account';
+
+    if (err.code === 'auth/email-already-in-use') {
+      message = 'Email is already registered';
+    } else if (err.code === 'auth/invalid-email') {
+      message = 'Invalid email address';
+    } else if (err.code === 'auth/weak-password') {
+      message = 'Password is too weak';
     }
 
-    setLoading(true);
+    setError(message);
 
-    try {
-      await signup(email, password, fullName, phoneNumber, companyName);
-      await logout();
-      router.push('/login');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
   <div

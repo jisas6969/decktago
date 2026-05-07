@@ -1,7 +1,7 @@
 'use client';
 import regions from '@/data/ph/regions.json';
 import provinces from '@/data/ph/provinces.json';
-import cities from '@/data/ph/cities.json';
+import citiesData from '@/data/ph/cities.json';
 import barangays from '@/data/ph/barangays.json';
 import { MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const items = isTutorialActive ? [demoCartItem] : realItems;
 
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showAddressList, setShowAddressList] = useState(false);
 
@@ -43,6 +44,10 @@ export default function CheckoutPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
 const [step, setStep] = useState<'region' | 'province' | 'city' | 'barangay'>('region');
+const cities: any[] = citiesData as any[];
+const regionsList: any[] = regions as any[];
+const provincesList: any[] = provinces as any[];
+const barangaysList: any[] = barangays as any[];
 
 const [selectedRegion, setSelectedRegion] = useState('');
 const [selectedProvince, setSelectedProvince] = useState('');
@@ -51,7 +56,7 @@ const [tempBarangay, setTempBarangay] = useState('');
 const [selectedRegionName, setSelectedRegionName] = useState('');
 const [selectedProvinceName, setSelectedProvinceName] = useState('');
 const [selectedCityName, setSelectedCityName] = useState('');
-const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+const hasProvinces = provincesList.some((p: any) => p.regionCode === selectedRegion);
 const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('delivery');
   
 
@@ -123,7 +128,7 @@ const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('deliver
       const snap = await getDoc(ref);
 
       if (snap.exists() && snap.data().addresses) {
-        const data = snap.data().addresses;
+        const data: any[] = snap.data().addresses || [];
 
         setAddresses(data);
 
@@ -155,18 +160,41 @@ const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('deliver
     if (snap.exists() && snap.data().addresses) {
       existing = snap.data().addresses;
     }
-    if (
-  !formData.fullName ||
-  !formData.phone ||
-  !formData.street ||
-  !formData.postalCode ||
-  !formData.barangay
+    setFormError('');
+
+// 🔹 Required Fields
+if (
+  !formData.fullName.trim() ||
+  !formData.phone.trim() ||
+  !formData.street.trim() ||
+  !formData.postalCode.trim() ||
+  !formData.barangay.trim()
 ) {
-  alert('Please complete all required fields');
+  setFormError('Please complete all required fields');
   return;
 }
+
+// 🔹 Full Name
+if (formData.fullName.trim().length < 3) {
+  setFormError('Full name must be at least 3 characters');
+  return;
+}
+
+// 🔹 Philippine Phone Validation
 if (!/^09\d{9}$/.test(formData.phone)) {
-  alert('Invalid Philippine phone number');
+  setFormError('Invalid Philippine phone number');
+  return;
+}
+
+// 🔹 Postal Code Validation
+if (!/^\d{4}$/.test(formData.postalCode)) {
+  setFormError('Postal code must be 4 digits');
+  return;
+}
+
+// 🔹 Street Validation
+if (formData.street.trim().length < 5) {
+  setFormError('Please enter a complete street address');
   return;
 }
 
@@ -205,12 +233,30 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   // ✅ PLACE ORDER
   const handleSubmit = async () => {
     if (deliveryType === 'delivery' && !selectedAddress) return;
-    if (
-  deliveryType === 'pickup' &&
-  (!formData.fullName || !formData.phone)
-) {
-  alert('Please enter your full name and phone number');
-  return;
+    if (deliveryType === 'pickup') {
+
+  setFormError('');
+
+  // 🔹 Required Fields
+  if (
+    !formData.fullName.trim() ||
+    !formData.phone.trim()
+  ) {
+    setFormError('Please enter your full name and phone number');
+    return;
+  }
+
+  // 🔹 Full Name Validation
+  if (formData.fullName.trim().length < 3) {
+    setFormError('Full name must be at least 3 characters');
+    return;
+  }
+
+  // 🔹 Philippine Phone Validation
+  if (!/^09\d{9}$/.test(formData.phone)) {
+    setFormError('Invalid Philippine phone number');
+    return;
+  }
 }
 
     setLoading(true);
@@ -236,6 +282,17 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 };
 
       const docRef = await addDoc(collection(db, 'orders'), order);
+      await addDoc(collection(db, 'chats', user!.uid, 'messages'), {
+  sender: 'customer',
+  orderId: docRef.id,
+  createdAt: new Date(),
+  isRead: false,
+
+  text: '📦 New Order Placed',
+
+  orderItems: items,
+  orderTotal: total,
+});
 
       if (deliveryType === 'delivery' && selectedAddress) {
   await updateUserData({
@@ -295,7 +352,17 @@ if (!/^09\d{9}$/.test(formData.phone)) {
     </label>
   </div>
 </Card>
-{deliveryType === 'pickup' && (
+  {deliveryType === 'pickup' && (
+
+  <div className="space-y-3">
+
+    {formError && (
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        {formError}
+      </div>
+    )}
+
+  
   <Card className="p-5 space-y-4">
     <h2 className="font-semibold text-[#2787b4]">
       Pickup Contact Information
@@ -325,6 +392,8 @@ if (!/^09\d{9}$/.test(formData.phone)) {
       />
     </div>
   </Card>
+
+  </div>
 )}
 
         {/* ================= DELIVERY ADDRESS ================= */}
@@ -585,7 +654,11 @@ if (!/^09\d{9}$/.test(formData.phone)) {
             <h2 className="text-lg font-semibold mb-6">
               {isEditing ? 'Edit Address' : 'New Address'}
             </h2>
-
+          {formError && (
+  <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+    {formError}
+  </div>
+)}
             <div className="space-y-4">
 
   {/* FULL NAME + PHONE */}
@@ -656,6 +729,9 @@ if (!/^09\d{9}$/.test(formData.phone)) {
             <div className="flex justify-end gap-3 mt-6">
               <button
   onClick={() => {
+
+    setFormError('');
+
     // close modal
     setShowAddressModal(false);
 
@@ -769,7 +845,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 
         {/* REGION */}
        {step === 'region' && (
-  regions.map((r: any) => (
+  regionsList.map((r: any) => (
     <div
       key={r.code}
       onClick={() => {
@@ -784,7 +860,9 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   setTempBarangay('');
 
   // Dynamically skip province if this region has no provinces
-  const hasProvinces = provinces.some((p: any) => p.regionCode === r.code);
+  const hasProvinces = provincesList.some(
+  (p: any) => p.regionCode === r.code
+);
   if (!hasProvinces) {
     setStep('city'); // skip province, go to city
   } else {
@@ -800,7 +878,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 
         {/* PROVINCE */}
         {step === 'province' && (
-  provinces
+  provincesList
     .filter((p: any) => p.regionCode === selectedRegion)
     .map((p: any) => (
       <div
@@ -827,7 +905,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   cities
     .filter((c: any) => {
       // If region has no provinces, filter cities by regionCode directly
-      const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+      const hasProvinces = provincesList.some((p: any) => p.regionCode === selectedRegion);
       return hasProvinces
         ? c.provinceCode === selectedProvince
         : c.regionCode === selectedRegion;
@@ -851,19 +929,21 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 
         {/* BARANGAY */}
         {step === 'barangay' && (
-  barangays
+  barangaysList
     .filter((b: any) => b.cityCode === selectedCity)
     .map((b: any) => (
       <div
         key={b.code}
         onClick={() => {
-          const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
+          const hasProvinces = provincesList.some(
+  (p: any) => p.regionCode === selectedRegion
+);
           setFormData(prev => ({
             ...prev,
             province: hasProvinces
-              ? provinces.find((p: any) => p.code === selectedProvince)?.name
-              : selectedRegionName, // Use region name when no provinces exist
-            city: cities.find((c: any) => c.code === selectedCity)?.name,
+  ? provincesList.find((p: any) => p.code === selectedProvince)?.name || ''
+  : selectedRegionName || '',
+            city: cities.find((c: any) => c.code === selectedCity)?.name || '',
             barangay: b.name
           }));
 

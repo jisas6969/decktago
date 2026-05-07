@@ -26,13 +26,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to log in');
-    } finally {
-      setLoading(false);
-    }
+  await login(email, password);
+  router.push('/');
+} catch (err: any) {
+  let message = 'Failed to log in';
+
+  if (err.code === 'auth/invalid-credential') {
+    message = 'Invalid email or password';
+  } else if (err.code === 'auth/user-not-found') {
+    message = 'Account not found';
+  } else if (err.code === 'auth/wrong-password') {
+    message = 'Incorrect password';
+  } else if (err.code === 'auth/too-many-requests') {
+    message = 'Too many attempts. Please try again later';
+  }
+
+  setError(message);
+} finally {
+  setLoading(false);
+}
   };
 
  return (

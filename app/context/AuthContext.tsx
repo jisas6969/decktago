@@ -26,6 +26,10 @@ interface UserData {
   phoneNumber: string;
   companyName: string;
   role: string;
+
+  address?: string;
+  phone?: string;
+
   createdAt?: Timestamp;
 }
 

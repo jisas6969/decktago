@@ -691,16 +691,16 @@ const showTime =
 
                 <button
   onClick={async () => {
-  if (selectedImages.length > 0) {
-    await handleImageUpload();
-  }
+    if (selectedImages.length > 0) {
+      await handleImageUpload();
+    }
 
-  if (text.trim()) {
-    await sendMessage();
-  }
-}}
+    if (text.trim()) {
+      await sendMessage();
+    }
+  }}
   disabled={!text.trim() && imagePreviews.length === 0}
-  className="p-2 flex items-center justify-center transition duration-200"
+  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition duration-200 active:scale-95"
 >
   {editingId ? (
     <Check
@@ -710,13 +710,11 @@ const showTime =
   ) : (
     <Send
       size={20}
-      className={`rotate-45 transition duration-200
-        ${
-  text.trim() || imagePreviews.length > 0
-    ? 'text-[#2787b4] hover:text-[#1f6f94] hover:scale-110 hover:-translate-y-[1px]'
-    : 'text-gray-300'
-}
-      `}
+      className={`rotate-45 transition duration-200 ${
+        text.trim() || imagePreviews.length > 0
+          ? 'text-[#2787b4] hover:text-[#1f6f94] hover:scale-110'
+          : 'text-gray-300'
+      }`}
     />
   )}
 </button>

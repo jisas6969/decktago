@@ -294,6 +294,16 @@ if (formData.street.trim().length < 5) {
   orderItems: items,
   orderTotal: total,
 });
+await setDoc(
+  doc(db, 'chats', user!.uid),
+  {
+    lastMessage: '__ORDER__',
+    lastTime: new Date(),
+    lastSender: 'customer',
+    unreadCount_sales: 1,
+  },
+  { merge: true }
+);
 
       if (deliveryType === 'delivery' && selectedAddress) {
   await updateUserData({

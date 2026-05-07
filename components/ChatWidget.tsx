@@ -51,6 +51,8 @@ export default function ChatWidget() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef =
+  useRef<HTMLDivElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatId = user?.uid;
   const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -116,8 +118,18 @@ if (!hasSalesMessage && chatId && newMessages.length === 0) {
   }, [user]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  if (!open) return;
+
+  const timeout = setTimeout(() => {
+    const container = messagesContainerRef.current;
+
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, 150);
+
+  return () => clearTimeout(timeout);
+}, [messages, open]);
   useEffect(() => {
   const close = (e: any) => {
     // ❌ huwag mag-close kung click ay nasa menu
@@ -291,6 +303,7 @@ replyTimeout.current = setTimeout(async () => {
               )}
 
               <div
+  ref={messagesContainerRef}
   className={`p-4 overflow-y-auto space-y-4 bg-gray-50 h-full min-h-0 ${
     editingId ? 'pointer-events-none select-none' : ''
   }`}
@@ -515,7 +528,7 @@ const showTime =
     </div>
   );
 })}
-                <div ref={bottomRef} />
+<div ref={bottomRef} />
               </div>
             </div>
 

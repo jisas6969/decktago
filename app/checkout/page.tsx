@@ -52,7 +52,7 @@ const [selectedRegionName, setSelectedRegionName] = useState('');
 const [selectedProvinceName, setSelectedProvinceName] = useState('');
 const [selectedCityName, setSelectedCityName] = useState('');
 const hasProvinces = provinces.some((p: any) => p.regionCode === selectedRegion);
-
+const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('delivery');
   
 
   const [formData, setFormData] = useState({
@@ -204,25 +204,45 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 
   // ✅ PLACE ORDER
   const handleSubmit = async () => {
-    if (!selectedAddress) return;
+    if (deliveryType === 'delivery' && !selectedAddress) return;
+    if (
+  deliveryType === 'pickup' &&
+  (!formData.fullName || !formData.phone)
+) {
+  alert('Please enter your full name and phone number');
+  return;
+}
 
     setLoading(true);
 
     try {
       const order = {
-        userId: user?.uid,
-        items,
-        shippingAddress: selectedAddress,
-        status: 'Pending',
-        createdAt: new Date(),
-      };
+  userId: user?.uid,
+  items,
+  shippingAddress:
+    deliveryType === 'delivery'
+      ? selectedAddress
+      : {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          street: 'Pickup',
+          barangay: '',
+          city: '',
+          province: '',
+          postalCode: '',
+        },
+  status: 'Pending',
+  createdAt: new Date(),
+};
 
       const docRef = await addDoc(collection(db, 'orders'), order);
 
-      await updateUserData({
-        address: `${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.city}, ${selectedAddress.province} ${selectedAddress.postalCode}`,
-        phone: selectedAddress.phone,
-      });
+      if (deliveryType === 'delivery' && selectedAddress) {
+  await updateUserData({
+    address: `${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.city}, ${selectedAddress.province} ${selectedAddress.postalCode}`,
+    phone: selectedAddress.phone,
+  });
+}
 
       clearCart();
       router.push(`/orders/${docRef.id}`);
@@ -250,9 +270,66 @@ if (!/^09\d{9}$/.test(formData.phone)) {
     Review your order and complete your purchase
   </p>
 </div>
+<Card id="order-type" className="p-5">
+  <h2 className="font-semibold mb-3">Order Type</h2>
+
+  <div className="flex gap-4">
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        value="delivery"
+        checked={deliveryType === 'delivery'}
+        onChange={() => setDeliveryType('delivery')}
+      />
+      Delivery
+    </label>
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        value="pickup"
+        checked={deliveryType === 'pickup'}
+        onChange={() => setDeliveryType('pickup')}
+      />
+      Pickup
+    </label>
+  </div>
+</Card>
+{deliveryType === 'pickup' && (
+  <Card className="p-5 space-y-4">
+    <h2 className="font-semibold text-[#2787b4]">
+      Pickup Contact Information
+    </h2>
+
+    <div>
+      <label className="text-sm text-gray-600">
+        Full Name
+      </label>
+
+      <Input
+        name="fullName"
+        value={formData.fullName}
+        onChange={handleChange}
+      />
+    </div>
+
+    <div>
+      <label className="text-sm text-gray-600">
+        Phone Number
+      </label>
+
+      <Input
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+      />
+    </div>
+  </Card>
+)}
 
         {/* ================= DELIVERY ADDRESS ================= */}
-        <Card id="address-section" className="p-5">
+{deliveryType === 'delivery' && (
+<Card id="address-section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold mb-3 text-[#2787b4]">
 
   <MapPin className="w-5 h-5" />
@@ -327,6 +404,7 @@ if (!/^09\d{9}$/.test(formData.phone)) {
 </div>
           )}
         </Card>
+        )}
 
         {/* ================= PRODUCTS ================= */}
         <Card className="p-5">
@@ -377,7 +455,11 @@ if (!/^09\d{9}$/.test(formData.phone)) {
   {/* PLACE ORDER */}
   <Button
     onClick={handleSubmit}
-    disabled={isTutorialActive || !selectedAddress || loading}
+    disabled={
+  isTutorialActive ||
+  (deliveryType === 'delivery' && !selectedAddress) ||
+  loading
+}
     className="flex-1 bg-[#2787b4] hover:bg-[#1f6f94] text-white"
   >
     {loading ? 'Placing Order...' : 'Place Order'}

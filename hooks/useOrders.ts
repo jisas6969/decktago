@@ -8,12 +8,14 @@ import { useAuth } from '@/app/context/AuthContext';
 export interface Order {
   id: string;
   userId: string;
+
   items: Array<{
-  id: string;
-  name: string;
-  quantity: number;
-  price: number; // ✅ ADD THIS
-}>;
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+
   shippingAddress: {
     fullName: string;
     phone: string;
@@ -24,8 +26,16 @@ export interface Order {
     postalCode: string;
     fullAddress?: string;
   };
-  status: 'Pending' | 'In Production' | 'In Transit' | 'Out for Delivery' | 'Delivered';
+
+  status:
+    | 'Pending'
+    | 'In Production'
+    | 'In Transit'
+    | 'Out for Delivery'
+    | 'Delivered';
+
   isCSConfirmed?: boolean;
+
   createdAt: Date;
 }
 

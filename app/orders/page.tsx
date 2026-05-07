@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTutorial } from '@/hooks/useTutorial';
+import { useState } from 'react';
 
 const statusColors: Record<string, string> = {
   Pending: 'bg-[#e6f2f8] text-[#2787b4]',
@@ -15,12 +16,21 @@ const statusColors: Record<string, string> = {
   'Out for Delivery': 'bg-[#e6f2f8] text-[#2787b4]',
   Delivered: 'bg-[#e6f2f8] text-[#2787b4]',
 };
+const normalizedStatusMap: Record<string, string> = {
+  pending: 'Pending',
+  in_production: 'In Production',
+  in_transit: 'In Transit',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+};
 
 export default function OrdersPage() {
   const { user, logout, loading: authLoading } = useAuth();
   const { orders: realOrders, loading: ordersLoading } = useOrders();
   const router = useRouter();
   const { isTutorialActive, demoOrder } = useTutorial();
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   // 🔥 Demo mode: inject Firestore-fetched demo order
   const orders = isTutorialActive ? [demoOrder as any] : realOrders;
@@ -29,6 +39,21 @@ export default function OrdersPage() {
     await logout();
     router.push('/login');
   };
+  const filteredOrders = orders.filter((order) => {
+  const matchesSearch = order.id
+    .toLowerCase()
+    .includes(search.toLowerCase());
+
+
+const displayStatus =
+  normalizedStatusMap[order.status] || order.status;
+
+const matchesStatus =
+  filterStatus === 'All' ||
+  displayStatus === filterStatus;
+
+  return matchesSearch && matchesStatus;
+});
 
   if (authLoading) {
     return (
@@ -65,6 +90,28 @@ export default function OrdersPage() {
           <h1 className="text-3xl font-bold mb-2">My Orders</h1>
           <p className="text-slate-600">View and track your orders</p>
         </div>
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+  <input
+    type="text"
+    placeholder="Search Order ID..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border rounded-lg px-4 py-2 flex-1"
+  />
+
+  <select
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+    className="border rounded-lg px-4 py-2"
+  >
+    <option value="All">All Status</option>
+    <option value="Pending">Pending</option>
+    <option value="In Production">In Production</option>
+    <option value="In Transit">In Transit</option>
+    <option value="Out for Delivery">Out for Delivery</option>
+    <option value="Delivered">Delivered</option>
+  </select>
+</div>
 
         {ordersLoading ? (
           <div className="flex justify-center py-12">
@@ -73,7 +120,7 @@ export default function OrdersPage() {
               <p className="text-slate-600">Loading orders...</p>
             </div>
           </div>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-slate-600 text-lg mb-4">No orders yet</p>
             <p className="text-slate-500 mb-6">Start shopping to place your first order</p>
@@ -85,19 +132,22 @@ export default function OrdersPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <Link key={order.id} href={`/orders/${order.id}`}>
-                <Card id={orders.indexOf(order) === 0 ? 'order-card' : undefined} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between gap-4">
+                <Card
+  id={orders.indexOf(order) === 0 ? 'order-card' : undefined}
+  className="p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer"
+>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                         <h3 className="font-semibold text-lg">Order #{order.id.slice(0, 8)}</h3>
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
                             statusColors[order.status] || 'bg-slate-100 text-slate-800'
                           }`}
                         >
-                          {order.status}
+                          {normalizedStatusMap[order.status] || order.status}
                         </span>
                       </div>
                       <p className="text-slate-600 text-sm mb-2">
@@ -109,7 +159,7 @@ export default function OrdersPage() {
                         {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="text-slate-500 text-sm mt-1">View details →</p>
                     </div>
                   </div>

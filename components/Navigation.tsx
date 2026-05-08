@@ -108,18 +108,18 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
 
         {/* RIGHT SIDE */}
         <div className="flex items-center gap-6 relative">
-          {user && (
-            <>
-              {/* 🛒 CART */}
-              <Link href="/cart" className="relative">
-                <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-1 bg-red-500  text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
+          {/* 🛒 CART (ALWAYS VISIBLE) */}
+          <Link href="/cart" className="relative">
+            <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-1 bg-red-500  text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </Link>
 
+          {user ? (
+            <>
               {/* 📦 ORDERS */}
               <Link
                 href="/orders"
@@ -193,7 +193,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                       onClick={() => {
                         setOpen(false);
                         onLogout();
-router.push('/login');
+                        router.push('/login');
                       }}
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
                     >
@@ -205,6 +205,19 @@ router.push('/login');
                 )}
               </div>
             </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href="/login">
+                <button className="border border-[#2787b4] text-[#2787b4] hover:bg-[#2787b4] hover:text-white rounded-lg px-4 py-2 transition font-medium">
+                  Sign In
+                </button>
+              </Link>
+              <Link href="/signup">
+                <button className="bg-[#2787b4] text-white hover:bg-[#1f6f94] rounded-lg px-4 py-2 transition font-medium">
+                  Sign Up
+                </button>
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,9 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
   const { signup, logout, loginWithGoogle } = useAuth();
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -86,7 +87,7 @@ export default function SignupPage() {
     );
 
     await logout();
-    router.push('/login');
+    router.push(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
 
   } catch (err: any) {
 
@@ -179,9 +180,9 @@ export default function SignupPage() {
       const res = await loginWithGoogle();
 
 if (!res.isProfileComplete) {
-  router.push('/account');
+  router.push(`/account?redirect=${encodeURIComponent(redirectUrl)}`);
 } else {
-  router.push('/'); // 👉 complete na
+  router.push(redirectUrl); // 👉 complete na
 }
 
     } catch (err: any) {
@@ -198,7 +199,7 @@ if (!res.isProfileComplete) {
         <p className="text-slate-600">
           Already have an account?{' '}
           <Link
-            href="/login"
+            href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
             className="font-medium text-[#2787b4] hover:text-[#1f6f94]"
           >
             

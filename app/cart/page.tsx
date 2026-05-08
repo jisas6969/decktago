@@ -45,7 +45,7 @@ const handleSelectAll = () => {
   }
 };
   if (authLoading) return null;
-  if (!user) return null;
+  // Removed if (!user) return null; for guest access
 
   return (
     <div className="min-h-screen bg-slate-50">

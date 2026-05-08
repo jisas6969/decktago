@@ -29,7 +29,7 @@ export default function TutorialOverlay() {
   const [primaryRect, setPrimaryRect] = useState<Rect | null>(null);
   const [visible, setVisible] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<'bottom' | 'top'>('bottom');
-  const retryRef = useRef<ReturnType<typeof setTimeout>>();
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number>(0);
 
   // ─── Measure target elements ─────────────────────────────────

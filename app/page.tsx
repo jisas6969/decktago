@@ -65,12 +65,7 @@ useEffect(() => {
   checkTutorial();
 }, [user, startTutorial]);
 
-  // 🔐 Redirect if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
+  // 🔐 Redirect removed for guest access
 
   // 👤 Fetch user name
   useEffect(() => {
@@ -154,7 +149,7 @@ useEffect(() => {
     );
   }
 
-  if (!user) return null;
+  // if (!user) return null; removed for guest access
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -163,7 +158,7 @@ useEffect(() => {
         {/* HEADER */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome, {fullName || user.email}
+            Welcome{user ? `, ${fullName || user.email}` : ' to DecktaGo'}
           </h1>
           <p className="text-slate-600">
             Browse our products and add them to your cart

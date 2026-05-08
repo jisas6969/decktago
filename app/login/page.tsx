@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
   const { login, loginWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +29,7 @@ export default function LoginPage() {
 
     try {
   await login(email, password);
-  router.push('/');
+  router.push(redirectUrl);
 } catch (err: any) {
   let message = 'Failed to log in';
 
@@ -156,7 +158,7 @@ export default function LoginPage() {
     onClick={async () => {
       try {
         await loginWithGoogle();
-        router.push('/');
+        router.push(redirectUrl);
       } catch (err: any) {
         setError(err.message);
       }
@@ -172,7 +174,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-slate-600">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-medium text-[#2787b4] hover:text-[#1f6f94]">
+            <Link href={`/signup?redirect=${encodeURIComponent(redirectUrl)}`} className="font-medium text-[#2787b4] hover:text-[#1f6f94]">
               Sign up
             </Link>
             

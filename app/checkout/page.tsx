@@ -23,7 +23,7 @@ import { useTutorial } from '@/hooks/useTutorial';
 import { DEMO_ADDRESS } from '@/app/context/TutorialContext';
 
 export default function CheckoutPage() {
-  const { user, updateUserData } = useAuth();
+  const { user, updateUserData, loading: authLoading } = useAuth();
   const { items: realItems, clearCart } = useCart();
   const router = useRouter();
 
@@ -33,6 +33,8 @@ export default function CheckoutPage() {
   const items = isTutorialActive ? [demoCartItem] : realItems;
 
   const [loading, setLoading] = useState(false);
+
+  // Redirect removed to allow guest checkout
   const [formError, setFormError] = useState('');
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showAddressList, setShowAddressList] = useState(false);
@@ -120,7 +122,61 @@ const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('deliver
   }, [shouldCloseAddressModal, setShouldCloseAddressModal]);
 
 
-  // ✅ LOAD ADDRESSES
+  // ✅ RESTORE GUEST CHECKOUT
+  useEffect(() => {
+    const saved = localStorage.getItem('guest-checkout');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.deliveryType) setDeliveryType(data.deliveryType);
+        if (data.formData) setFormData(prev => ({ ...prev, ...data.formData }));
+        if (data.selectedAddress) {
+          setSelectedAddress(data.selectedAddress);
+          setAddresses((prev) => {
+  if (!data.selectedAddress) return prev;
+
+  const exists = prev.some(
+    (a) => a.id === data.selectedAddress.id
+  );
+
+  return exists
+    ? prev
+    : [...prev, data.selectedAddress];
+});
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+  // ✅ AUTO SAVE GUEST CHECKOUT
+useEffect(() => {
+  if (
+    !user &&
+    !authLoading &&
+    (
+      formData.fullName.trim() ||
+      formData.phone.trim() ||
+      selectedAddress
+    )
+  ) {
+    localStorage.setItem(
+      'guest-checkout',
+      JSON.stringify({
+        deliveryType,
+        formData,
+        selectedAddress,
+      })
+    );
+  }
+}, [
+  deliveryType,
+  formData,
+  selectedAddress,
+  user,
+  authLoading
+]);
+
+  // ✅ LOAD ADDRESSES AND MERGE GUEST DATA
   useEffect(() => {
     const fetchAddresses = async () => {
       if (!user?.uid) return;
@@ -128,21 +184,40 @@ const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('deliver
       const ref = doc(db, 'users', user.uid);
       const snap = await getDoc(ref);
 
+      let data: any[] = [];
       if (snap.exists() && snap.data().addresses) {
-        const data: any[] = snap.data().addresses || [];
+        data = snap.data().addresses || [];
+      }
 
+      const saved = localStorage.getItem('guest-checkout');
+      let guestSelectedId = null;
+
+      if (saved) {
+        try {
+          const guestData = JSON.parse(saved);
+          const parsed = guestData.selectedAddress;
+          if (parsed && parsed.street && parsed.barangay) {
+            const existing = data.find((a: any) => a.street === parsed.street && a.barangay === parsed.barangay);
+            if (!existing) {
+              data.push(parsed);
+              await setDoc(ref, { addresses: data }, { merge: true });
+              guestSelectedId = parsed.id;
+            } else {
+              guestSelectedId = existing.id;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (data.length > 0) {
         setAddresses(data);
-
-        const def = data.find((a: any) => a.isDefault);
-        const selected = def || data[0];
-
+        const selected = data.find((a: any) => a.id === guestSelectedId) || data.find((a: any) => a.isDefault) || data[0];
         setSelectedAddress(selected);
-
         setFormData((prev) => ({
-  ...prev,
-  ...selected,
-  postalCode: selected.postalCode || selected.zipCode || '',
-}));
+          ...prev,
+          ...selected,
+          postalCode: selected.postalCode || selected.zipCode || '',
+        }));
       }
     };
 
@@ -151,16 +226,6 @@ const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('deliver
 
   // ✅ SAVE / EDIT ADDRESS
   const handleSaveAddress = async () => {
-    if (!user) return;
-
-    const ref = doc(db, 'users', user.uid);
-    const snap = await getDoc(ref);
-
-    let existing: any[] = [];
-
-    if (snap.exists() && snap.data().addresses) {
-      existing = snap.data().addresses;
-    }
     setFormError('');
 
 // 🔹 Required Fields
@@ -199,6 +264,21 @@ if (formData.street.trim().length < 5) {
   return;
 }
 
+    let existing: any[] = addresses;
+    let ref: any = null;
+
+    if (user) {
+  ref = doc(db, 'users', user.uid);
+
+  const snap = await getDoc(ref);
+
+  const userData = snap.data() as any;
+
+  if (snap.exists() && userData?.addresses) {
+    existing = userData.addresses;
+  }
+}
+
 
     let updated;
 
@@ -223,6 +303,16 @@ if (formData.street.trim().length < 5) {
       setSelectedAddress(newAddress);
     }
 
+    if (!user) {
+      const addrToSave = updated.find((a: any) => a.id === (isEditing ? editingId : updated[updated.length - 1].id)) || updated[0];
+      setAddresses([addrToSave]);
+      setSelectedAddress(addrToSave);
+      setIsEditing(false);
+      setEditingId(null);
+      setShowAddressModal(false);
+      return;
+    }
+
     await setDoc(ref, { addresses: updated }, { merge: true });
 
     setAddresses(updated);
@@ -233,6 +323,10 @@ if (formData.street.trim().length < 5) {
 
   // ✅ PLACE ORDER
   const handleSubmit = async () => {
+    if (!user) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
     if (deliveryType === 'delivery' && !selectedAddress) return;
     if (deliveryType === 'pickup') {
 
@@ -289,7 +383,7 @@ if (formData.street.trim().length < 5) {
   createdAt: new Date(),
   isRead: false,
 
-  text: '📦 New Order Placed',
+  text: ' New Order Placed',
 
   orderItems: items,
   orderTotal: total,
@@ -313,6 +407,7 @@ await setDoc(
 }
 
       clearCart();
+      localStorage.removeItem('guest-checkout');
       router.push(`/orders/${docRef.id}`);
     } catch (err) {
       console.error(err);
@@ -321,7 +416,7 @@ await setDoc(
     }
   };
 
-  if (!user) return null;
+  // if (!user) return null; removed for guest checkout
   const total = items.reduce(
   (sum, item) => sum + item.price * item.quantity,
   0
@@ -338,6 +433,11 @@ await setDoc(
     Review your order and complete your purchase
   </p>
 </div>
+{!user && (
+  <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg">
+    Please sign in or create an account to place your order.
+  </div>
+)}
 <Card id="order-type" className="p-5">
   <h2 className="font-semibold mb-3">Order Type</h2>
 
@@ -542,7 +642,7 @@ await setDoc(
 }
     className="flex-1 bg-[#2787b4] hover:bg-[#1f6f94] text-white"
   >
-    {loading ? 'Placing Order...' : 'Place Order'}
+    {loading ? 'Placing Order...' : (!user ? 'Sign In to Place Order' : 'Place Order')}
   </Button>
 
   {/* BACK TO CART */}

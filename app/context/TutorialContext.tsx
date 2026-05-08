@@ -87,12 +87,6 @@ export const TUTORIAL_STEPS: TutorialStepConfig[] = [
     nextLabel: 'Next →',
   },
   {
-  page: '/checkout',
-  elementIds: ['order-type'],
-  tooltip: 'Choose whether you want Delivery or Pickup.',
-  nextLabel: 'Next',
-  },
-  {
     elementIds: ['address-section'],
     tooltip: 'Review your order and delivery address before placing it ',
     page: '/checkout',

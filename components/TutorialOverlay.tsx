@@ -129,8 +129,8 @@ useEffect(() => {
   useEffect(() => {
   if (!isTutorialActive) return;
 
-  document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
+  document.body.style.overflowX = 'hidden';
+document.body.style.touchAction = 'pan-y';
 
   return () => {
     document.body.style.overflow = '';
@@ -204,29 +204,78 @@ useEffect(() => {
   const spotW = allRight - allLeft;
   const spotH = allBottom - allTop;
 
-  // Tooltip position
-  const tooltipStyle: React.CSSProperties = {};
-  const arrowStyle: React.CSSProperties = {};
-  if (tooltipPos === 'bottom') {
-    tooltipStyle.top = (allBottom - window.scrollY) + 16;
-    tooltipStyle.left = (allLeft - window.scrollX) + spotW / 2;
-    tooltipStyle.transform = 'translateX(-50%)';
-    arrowStyle.top = -8;
-    arrowStyle.left = '50%';
-    arrowStyle.transform = 'translateX(-50%) rotate(45deg)';
-  } else {
-    tooltipStyle.top = (allTop - window.scrollY) - 16;
-    tooltipStyle.left = (allLeft - window.scrollX) + spotW / 2;
-    tooltipStyle.transform = 'translateX(-50%) translateY(-100%)';
-    arrowStyle.bottom = -8;
-    arrowStyle.left = '50%';
-    arrowStyle.transform = 'translateX(-50%) rotate(45deg)';
+// Tooltip position
+const tooltipStyle: React.CSSProperties = {};
+const arrowStyle: React.CSSProperties = {};
+
+const tooltipWidth =
+  window.innerWidth < 640
+    ? window.innerWidth - 32
+    : 380;
+
+const tooltipHeight = 220;
+
+const viewportPadding = 16;
+
+let tooltipTop = 0;
+
+let tooltipLeft =
+  (allLeft - window.scrollX) + spotW / 2;
+
+// 🔥 prevent overflow sa gilid
+tooltipLeft = Math.max(
+  tooltipWidth / 2 + viewportPadding,
+  Math.min(
+    tooltipLeft,
+    window.innerWidth -
+      tooltipWidth / 2 -
+      viewportPadding
+  )
+);
+
+if (tooltipPos === 'bottom') {
+  tooltipTop =
+    (allBottom - window.scrollY) + 16;
+
+  // 🔥 prevent overflow sa baba
+  if (
+    tooltipTop + tooltipHeight >
+    window.innerHeight
+  ) {
+    tooltipTop =
+      window.innerHeight -
+      tooltipHeight -
+      viewportPadding;
   }
 
-  const cutTop = allTop - window.scrollY;
-  const cutLeft = allLeft - window.scrollX;
-  const cutRight = allRight - window.scrollX;
-  const cutBottom = allBottom - window.scrollY;
+  arrowStyle.top = -8;
+  arrowStyle.left = '50%';
+  arrowStyle.transform =
+    'translateX(-50%) rotate(45deg)';
+} else {
+  tooltipTop =
+    (allTop - window.scrollY) -
+    tooltipHeight -
+    16;
+
+  // 🔥 prevent overflow sa taas
+  if (tooltipTop < viewportPadding) {
+    tooltipTop = viewportPadding;
+  }
+
+  arrowStyle.bottom = -8;
+  arrowStyle.left = '50%';
+  arrowStyle.transform =
+    'translateX(-50%) rotate(45deg)';
+}
+
+tooltipStyle.top = tooltipTop;
+tooltipStyle.left = tooltipLeft;
+tooltipStyle.transform = 'translateX(-50%)';
+const cutTop = allTop - window.scrollY;
+const cutLeft = allLeft - window.scrollX;
+const cutRight = allRight - window.scrollX;
+const cutBottom = allBottom - window.scrollY;
 
   return (
     <div className="tutorial-overlay-root" style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
@@ -284,7 +333,7 @@ useEffect(() => {
             background: '#1e293b',
             borderRadius: 12,
             padding: '20px 24px',
-            minWidth: 280,
+            width: 'calc(100vw - 32px)',
             maxWidth: 380,
             color: 'white',
             boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)',

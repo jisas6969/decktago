@@ -588,7 +588,7 @@ const showTime =
             </div>
 
             {/* INPUT */}
-<div className="p-2 border-t bg-white">
+<div className="p-2 sm:p-3 border-t bg-white w-full">
 
   {/* 🔥 IMAGE PREVIEW DITO */}
   {imagePreviews.length > 0 && (
@@ -628,7 +628,7 @@ const showTime =
     </div>
   )}
 
-  <div className="flex items-center gap-2">
+  <div className="flex items-end gap-2 w-full min-w-0">
                 <label
   className={`cursor-pointer p-2 ${
     uploading
@@ -659,9 +659,14 @@ const showTime =
   }}
 />
 </label>
-                <input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
+                <textarea
+  value={text}
+  onChange={(e) => setText(e.target.value)}
+  rows={1}
+  onInput={(e: any) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  }}
                   onKeyDown={async (e) => {
   if (e.key === 'Enter') {
     if (selectedImages.length > 0) {
@@ -673,7 +678,21 @@ const showTime =
     }
   }
 }}
-                  className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2787b4]"
+                  className="
+flex-1
+min-w-0
+max-h-32
+resize-none
+overflow-y-auto
+border
+rounded-2xl
+px-4
+py-2
+text-sm
+focus:outline-none
+focus:ring-2
+focus:ring-[#2787b4]
+"
                   placeholder="Type your message..."
                 />
 
@@ -700,7 +719,17 @@ const showTime =
     }
   }}
   disabled={!text.trim() && imagePreviews.length === 0}
-  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition duration-200 active:scale-95"
+  className="
+shrink-0
+w-10
+h-10
+sm:w-11
+sm:h-11
+rounded-full
+flex
+items-center
+justify-center
+ transition duration-200 active:scale-95"
 >
   {editingId ? (
     <Check

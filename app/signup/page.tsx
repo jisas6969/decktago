@@ -1,5 +1,5 @@
 'use client';
-
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 // 🔥 ICONS
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
-export default function SignupPage() {
+function SignupContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -259,5 +259,12 @@ function PasswordField({ label, value, setValue, show, toggle }: any) {
         </button>
       )}
     </div>
+  );
+}
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }

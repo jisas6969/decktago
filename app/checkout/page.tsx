@@ -241,8 +241,11 @@ if (
 }
 
 // 🔹 Full Name
-if (formData.fullName.trim().length < 3) {
-  setFormError('Full name must be at least 3 characters');
+if (
+  formData.fullName.trim().length < 3 ||
+  !/^[a-zA-Z\s'-]+$/.test(formData.fullName)
+) {
+  setFormError('Please enter a valid full name');
   return;
 }
 
@@ -342,8 +345,11 @@ if (formData.street.trim().length < 5) {
   }
 
   // 🔹 Full Name Validation
-  if (formData.fullName.trim().length < 3) {
-    setFormError('Full name must be at least 3 characters');
+  if (
+  formData.fullName.trim().length < 3 ||
+  !/^[a-zA-Z\s'-]+$/.test(formData.fullName)
+) {
+    setFormError('Please enter a valid full name');
     return;
   }
 
@@ -406,7 +412,7 @@ await setDoc(
   });
 }
 
-      clearCart();
+      await clearCart();
       localStorage.removeItem('guest-checkout');
       router.push(`/orders/${docRef.id}`);
     } catch (err) {
@@ -485,10 +491,11 @@ await setDoc(
       </label>
 
       <Input
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-      />
+  name="fullName"
+  value={formData.fullName}
+  onChange={handleChange}
+  autoComplete="name"
+/>
     </div>
 
     <div>
@@ -497,10 +504,13 @@ await setDoc(
       </label>
 
       <Input
-        name="phone"
-        value={formData.phone}
-        onChange={handleChange}
-      />
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  inputMode="numeric"
+  maxLength={11}
+  autoComplete="tel"
+/>
     </div>
   </Card>
 
@@ -637,8 +647,21 @@ await setDoc(
     onClick={handleSubmit}
     disabled={
   isTutorialActive ||
-  (deliveryType === 'delivery' && !selectedAddress) ||
-  loading
+  loading ||
+
+  (
+    deliveryType === 'delivery' &&
+    !selectedAddress
+  ) ||
+
+  (
+    deliveryType === 'pickup' &&
+    (
+      formData.fullName.trim().length < 3 ||
+!/^[a-zA-Z\s'-]+$/.test(formData.fullName) ||
+      !/^09\d{9}$/.test(formData.phone)
+    )
+  )
 }
     className="flex-1 bg-[#2787b4] hover:bg-[#1f6f94] text-white"
   >
@@ -773,26 +796,30 @@ await setDoc(
             <div className="space-y-4">
 
   {/* FULL NAME + PHONE */}
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
     <div>
       <label className="text-sm text-gray-600">Full Name</label>
       <Input
-        id="address-fullname"
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-      />
+  id="address-fullname"
+  name="fullName"
+  value={formData.fullName}
+  onChange={handleChange}
+  autoComplete="name"
+/>
     </div>
 
     <div>
       <label className="text-sm text-gray-600">Phone</label>
       <Input
-        id="address-phone"
-        name="phone"
-        value={formData.phone}
-        onChange={handleChange}
-      />
+  id="address-phone"
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  inputMode="numeric"
+  maxLength={11}
+  autoComplete="tel"
+/>
     </div>
 
   </div>

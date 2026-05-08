@@ -84,33 +84,33 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
 
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-3">
           <img
             src="/logo.png"
             alt="logo"
-            className="w-10 h-10 object-contain"
+            className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
           />
 
           <div className="leading-tight">
-            <h1 className="text-xl font-bold tracking-tight">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight">
               <span className="text-black">Deckta</span>
               <span style={{ color: '#2787b4' }}>G</span>
               <span style={{ color: '#2787b4' }}>o</span>
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="hidden sm:block text-xs text-slate-500">
               Pacific Equities
             </p>
           </div>
         </Link>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center gap-6 relative">
+        <div className="flex items-center gap-3 sm:gap-6 relative">
           {/* 🛒 CART (ALWAYS VISIBLE) */}
           <Link href="/cart" className="relative">
-            <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
+            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 hover:text-[#2787b4] transition" />
             {cartCount > 0 && (
               <span className="absolute -top-2 -right-1 bg-red-500  text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
                 {cartCount}
@@ -126,7 +126,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                 className="relative"
                 onClick={() => setHasOrderUpdate(false)}
               >
-                <Package className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
+                <Package className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 hover:text-[#2787b4] transition" />
                 {hasOrderUpdate && (
                   <span className="absolute -top-2 -right-1 bg-red-500 w-3 h-3 rounded-full" />
                 )}
@@ -135,7 +135,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               {/* 👤 ACCOUNT */}
               <div className="relative" ref={dropdownRef}>
                 <button onClick={() => setOpen(!open)}>
-                  <UserIcon className="w-6 h-6 text-gray-700 hover:text-[#2787b4] transition" />
+                  <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 hover:text-[#2787b4] transition" />
                 </button>
 
                 {open && (
@@ -206,14 +206,14 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/login">
-                <button className="border border-[#2787b4] text-[#2787b4] hover:bg-[#2787b4] hover:text-white rounded-lg px-4 py-2 transition font-medium">
+                <button className="border border-[#2787b4] text-[#2787b4] hover:bg-[#2787b4] hover:text-white rounded-lg px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base transition font-medium whitespace-nowrap">
                   Sign In
                 </button>
               </Link>
               <Link href="/signup">
-                <button className="bg-[#2787b4] text-white hover:bg-[#1f6f94] rounded-lg px-4 py-2 transition font-medium">
+                <button className="bg-[#2787b4] text-white hover:bg-[#1f6f94] rounded-lg px-2.5 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base transition font-medium whitespace-nowrap">
                   Sign Up
                 </button>
               </Link>

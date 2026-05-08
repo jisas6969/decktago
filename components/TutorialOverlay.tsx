@@ -85,15 +85,33 @@ export default function TutorialOverlay() {
     let attempts = 0;
 
     const tryFind = () => {
-      const firstEl = document.getElementById(currentConfig.elementIds[0]);
-      if (firstEl) {
-        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(measure, 400);
-      } else if (attempts < 30) {
-        attempts++;
-        retryRef.current = setTimeout(tryFind, 200);
-      }
-    };
+  const firstEl = document.getElementById(
+    currentConfig.elementIds[0]
+  );
+
+  // 🔥 Skip hidden elements (mobile pickup issue)
+  const isHidden =
+    !firstEl ||
+    firstEl.offsetParent === null;
+
+  if (isHidden) {
+    if (attempts < 30) {
+      attempts++;
+      retryRef.current = setTimeout(
+        tryFind,
+        200
+      );
+    }
+    return;
+  }
+
+  firstEl.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  });
+
+  setTimeout(measure, 400);
+};
 
     retryRef.current = setTimeout(tryFind, 300);
     return () => { if (retryRef.current) clearTimeout(retryRef.current); };
@@ -155,11 +173,18 @@ document.body.style.touchAction = 'pan-y';
   // ─── Handle Next ─────────────────────────────────────────────
   const handleNext = useCallback(() => {
     if (!currentConfig) return;
-
     if (currentConfig.isFinal) {
-      finishTutorial();
-      return;
-    }
+  finishTutorial();
+  return;
+}
+
+    // Prevent advancing if address section hidden
+if (
+  step === 4 &&
+  document.getElementById('address-section')?.offsetParent === null
+) {
+  return;
+}
 
     // Fire beforeNext actions
     if (currentConfig.beforeNext === 'open-address-modal') {

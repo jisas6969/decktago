@@ -1,4 +1,5 @@
 'use client';
+import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
@@ -22,6 +23,7 @@ interface NavigationProps {
 export default function Navigation({ user, onLogout }: NavigationProps) {
   const { items } = useCart();
   const cartCount = items.length;
+  const { userData } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [hasOrderUpdate, setHasOrderUpdate] = useState(false);
@@ -135,7 +137,24 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               {/* 👤 ACCOUNT */}
               <div className="relative" ref={dropdownRef}>
                 <button onClick={() => setOpen(!open)}>
-                  <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 hover:text-[#2787b4] transition" />
+                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+  {userData?.photoURL ? (
+    <img
+      src={userData.photoURL}
+      alt="profile"
+      className="w-full h-full object-cover"
+      referrerPolicy="no-referrer"
+    />
+  ) : (
+    <svg
+      className="w-full h-full text-gray-400 mt-1"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  )}
+</div>
                 </button>
 
                 {open && (

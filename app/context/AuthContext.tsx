@@ -29,6 +29,7 @@ interface UserData {
 
   address?: string;
   phone?: string;
+  photoURL?: string;
 
   createdAt?: Timestamp;
 }

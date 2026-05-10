@@ -132,7 +132,9 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
-
+button {
+  cursor: pointer;
+}
 /* ─── Tutorial Spotlight Animations ─── */
 @keyframes tutorialPulse {
   0%, 100% { box-shadow: 0 0 0 4px rgba(39, 135, 180, 0.25), 0 0 30px rgba(39, 135, 180, 0.3); }

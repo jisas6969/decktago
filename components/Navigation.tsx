@@ -103,7 +103,7 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
               <span style={{ color: '#2787b4' }}>o</span>
             </h1>
             <p className="hidden sm:block text-xs text-slate-500">
-              Pacific Equities
+              Pacific Equities,Inc
             </p>
           </div>
         </Link>

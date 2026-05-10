@@ -161,7 +161,9 @@ useEffect(() => {
             Welcome{user ? `, ${fullName || user.email}` : ' to DecktaGo'}
           </h1>
           <p className="text-slate-600">
-            Browse our products and add them to your cart
+            {user
+              ? 'Browse our available products and submit your order for processing and delivery.'
+              : 'Your trusted meat supply and food distribution platform by Deckta Pacific Equities, Inc.'}
           </p>
         </div>
 

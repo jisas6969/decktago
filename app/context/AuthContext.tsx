@@ -71,7 +71,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as UserData);
+            const data = userDoc.data() as UserData;
+            
+            if (firebaseUser.email && data.email !== firebaseUser.email) {
+              await setDoc(doc(db, 'users', firebaseUser.uid), { email: firebaseUser.email }, { merge: true });
+              data.email = firebaseUser.email;
+            }
+
+            setUserData(data);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);

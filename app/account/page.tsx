@@ -10,13 +10,14 @@ import {
   updatePassword,
   verifyBeforeUpdateEmail,
   linkWithCredential,
-  sendEmailVerification,
-  deleteUser
+  deleteUser,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import regions from '@/data/ph/regions.json';
 import provinces from '@/data/ph/provinces.json';
 import citiesData from '@/data/ph/cities.json';
@@ -58,6 +59,8 @@ export default function AccountPage() {
   const [deleteStep, setDeleteStep] = useState<'default' | 'warning' | 'confirm'>('default');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
 
   // Image Upload State
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -93,6 +96,7 @@ export default function AccountPage() {
   const [selectedProvinceName, setSelectedProvinceName] = useState('');
   const [selectedCityName, setSelectedCityName] = useState('');
   const hasProvinces = provincesList.some((p: any) => p.regionCode === selectedRegion);
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -205,14 +209,11 @@ export default function AccountPage() {
       const credential = EmailAuthProvider.credential(user.email, emailPassword);
       await reauthenticateWithCredential(user, credential);
 
-      await verifyBeforeUpdateEmail(
-  user,
-  newEmail
-);
+      await verifyBeforeUpdateEmail(user, newEmail);
 
-alert(
-  `Verification email sent to ${newEmail}. Please verify it before changes apply.`
-);
+      alert(
+        `Verification email sent to ${newEmail}. Please verify it before changes apply.`
+      );
       setShowEmailModal(false);
       setNewEmail('');
       setEmailPassword('');
@@ -405,23 +406,61 @@ alert(
     setAddresses(updated);
   };
 
-  const handleSendDeleteConfirmation = async () => {
+  const handleConfirmDeletion = async () => {
     if (!user) return;
     setDeleteLoading(true);
     setDeleteMessage({ type: '', text: '' });
-    
+
     try {
-      await sendEmailVerification(user, {
-        url: `${window.location.origin}/account/delete-confirm`,
-        handleCodeInApp: true,
-      });
-      setDeleteMessage({ type: 'success', text: 'Verification email sent. Please check your Gmail to continue account deletion.' });
+      const isPasswordUser =
+  user.providerData.some(
+    (provider) => provider.providerId === 'password'
+  );
+
+if (!isPasswordUser) {
+
+  const provider = new GoogleAuthProvider();
+
+  await signInWithPopup(auth, provider);
+
+} else {
+        if (!deletePassword) {
+          setDeleteMessage({ type: 'error', text: 'Please enter your password to confirm.' });
+          setDeleteLoading(false);
+          return;
+        }
+        if (!user.email) {
+          setDeleteMessage({ type: 'error', text: 'User email not found.' });
+          setDeleteLoading(false);
+          return;
+        }
+        const credential = EmailAuthProvider.credential(user.email, deletePassword);
+        await reauthenticateWithCredential(user, credential);
+      }
+
+      await deleteDoc(doc(db, 'users', user.uid));
+      await deleteUser(user);
+      
+      setDeleteMessage({ type: 'success', text: 'Account deleted successfully. Redirecting...' });
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+
     } catch (error: any) {
-      console.error(error);
-      setDeleteMessage({ type: 'error', text: 'Failed to send verification email. Please try again.' });
+      console.error('Delete error:', error);
+      if (error.code === 'auth/wrong-password') {
+        setDeleteMessage({ type: 'error', text: 'Incorrect password. Please try again.' });
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        setDeleteMessage({ type: 'error', text: 'Google sign-in popup was closed.' });
+      } else if (error.code === 'auth/requires-recent-login') {
+        setDeleteMessage({ type: 'error', text: 'Please log in again before deleting your account.' });
+      } else {
+        setDeleteMessage({ type: 'error', text: 'Failed to process request. Please try again.' });
+      }
+    } finally {
+      setDeleteLoading(false);
     }
-    
-    setDeleteLoading(false);
   };
 
   if (!user) {
@@ -915,23 +954,51 @@ alert(
                 )}
                 
                 <div className="bg-gray-50 rounded-md p-6 border mb-8">
-                  <p className="text-gray-600 mb-4 text-center">You are about to delete the account associated with:</p>
-                  <p className="font-medium text-gray-800 text-lg text-center mb-4">{user?.email}</p>
-                  <p className="text-sm text-gray-500 text-center">A final confirmation may be sent to your email to complete this process.</p>
+                  <p className="text-gray-600 mb-4 text-center">This action cannot be undone.</p>
+                  
+                  {!user?.providerData?.some((provider) => provider.providerId === 'password') ? (
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500 mb-4">You are signed in with Google.</p>
+                    </div>
+                  ) : (
+                    <div className="text-left mt-2">
+                      <label className="block text-sm text-gray-600 mb-2 font-medium">Enter your password to confirm</label>
+                      <div className="relative">
+                        <input
+                          type={showDeletePassword ? 'text' : 'password'}
+                          className="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-red-500 outline-none"
+                          placeholder="Your current password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowDeletePassword(!showDeletePassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showDeletePassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-4">
                   <Button
-                    onClick={() => setDeleteStep('warning')}
+                    onClick={() => {
+                      setDeleteStep('warning');
+                      setDeletePassword('');
+                      setDeleteMessage({ type: '', text: '' });
+                    }}
                     className="flex-1 py-3 text-gray-600 border border-gray-300 hover:bg-gray-50 bg-white"
                   >
                     Back
                   </Button>
                   <Button
-                    onClick={handleSendDeleteConfirmation}
+                    onClick={handleConfirmDeletion}
                     disabled={deleteLoading}
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 disabled:bg-gray-400"
                   >
-                    {deleteLoading ? 'Sending...' : 'Send Confirmation'}
+                    {deleteLoading ? 'Processing...' : (!user?.providerData?.some((provider) => provider.providerId === 'password') ? 'Continue with Google' : 'Confirm Deletion')}
                   </Button>
                 </div>
               </div>
@@ -1207,15 +1274,32 @@ alert(
               />
             </div>
             
-            <div>
-              <label className="block text-sm text-gray-600 mb-2">Current Password</label>
-              <input
-                type="password"
-                className="w-full border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-[#2787b4] outline-none"
-                value={emailPassword}
-                onChange={(e) => setEmailPassword(e.target.value)}
-              />
-            </div>
+           <div>
+  <label className="block text-sm text-gray-600 mb-2">
+    Current Password
+  </label>
+
+  <div className="relative">
+    <input
+      type={showEmailPassword ? 'text' : 'password'}
+      className="w-full border border-gray-300 rounded-md px-4 py-3 pr-12 focus:ring-2 focus:ring-[#2787b4] outline-none"
+      value={emailPassword}
+      onChange={(e) => setEmailPassword(e.target.value)}
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowEmailPassword(!showEmailPassword)}
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+    >
+      {showEmailPassword ? (
+        <EyeOff size={20} />
+      ) : (
+        <Eye size={20} />
+      )}
+    </button>
+  </div>
+</div>
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

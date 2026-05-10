@@ -6,17 +6,17 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 const faqs = [
   {
-    category: 'Orders',
+    category: 'Supply Orders',
     items: [
       {
-        question: 'How do I place an order?',
+        question: 'How do I submit a supply order?',
         answer:
-          'Browse the available product catalog, select the items and quantities required, add them to your cart, and proceed to checkout. Choose your payment method (Cash, Cheque, or Bank Transfer) and submit your order for processing and delivery coordination.',
+          'Browse the available product catalog, select the items and quantities your business requires, add them to your cart, and proceed to checkout. Choose your payment method (Cash, Cheque, or Bank Transfer) and submit your order for processing and delivery coordination by Deckta Pacific Equities, Inc.',
       },
       {
-        question: 'Can I cancel my order?',
+        question: 'Can I cancel a submitted order?',
         answer:
-          'Orders may only be cancelled before they have been processed or scheduled for delivery. Go to the Orders page, open the specific order, and use the Cancel option if it is still available. For urgent cancellations, please use the live chat support.',
+          'Orders may only be cancelled before they have been processed or scheduled for delivery. Go to the Orders page, open the specific order, and use the Cancel option if it is still available. For urgent cancellation requests, please use the live chat support immediately.',
       },
     ],
   },
@@ -26,52 +26,62 @@ const faqs = [
       {
         question: 'What payment methods are accepted?',
         answer:
-          'Decktago currently accepts Cash, Cheque, and Bank Transfer. We are working on expanding payment options in the future.',
+          'Decktago currently accepts Cash, Cheque, and Bank Transfer for all business transactions. These methods are aligned with standard commercial and B2B payment practices.',
       },
       {
-        question: 'Is Cash on Delivery available?',
+        question: 'Are there other payment options?',
         answer:
-          'Decktago currently accepts Cash, Cheque, and Bank Transfer for all business transactions. These methods are aligned with commercial and B2B payment standards.',
+          'At this time, accepted methods are limited to Cash, Cheque, and Bank Transfer. We are evaluating additional payment channels for future availability.',
       },
     ],
   },
   {
-    category: 'Delivery',
+    category: 'Delivery & Logistics',
     items: [
       {
-        question: 'How long does delivery take?',
+        question: 'How are orders fulfilled?',
         answer:
-          'Delivery schedules vary depending on order volume, location, and logistics availability. Deckta Pacific Equities, Inc. manages all delivery coordination directly. You will be contacted once your order is confirmed and ready for dispatch.',
+          'Orders may be delivered directly by Deckta Pacific Equities, Inc. using dedicated refrigerated vehicles, or arranged for warehouse pickup depending on customer preference. No third-party couriers are used.',
       },
       {
-        question: 'How are orders delivered?',
+        question: 'Do you offer warehouse pickup?',
         answer:
-          'Orders are delivered directly by Deckta Pacific Equities, Inc. using the company\'s own delivery handling process to ensure product quality and reliable service.',
+          'Yes. Customers may arrange warehouse pickup for their orders depending on scheduling and order coordination. Please use the live chat support to confirm pickup arrangements.',
+      },
+      {
+        question: 'What areas are covered by delivery?',
+        answer:
+          'Delivery operations currently cover Metro Manila and selected nearby provinces. For specific coverage inquiries, please contact our team through the live chat support.',
+      },
+      {
+        question: 'How long does fulfillment take?',
+        answer:
+          'Fulfillment schedules vary depending on order volume, location, and logistics availability. Deckta Pacific Equities, Inc. manages all delivery and pickup coordination directly. You will be contacted once your order is confirmed and ready.',
       },
     ],
   },
   {
-    category: 'Refunds',
+    category: 'Returns & Refunds',
     items: [
       {
-        question: 'How do refunds work?',
+        question: 'How do returns and refunds work?',
         answer:
-          'Refund and return requests are assessed on a case-by-case basis in line with company policy. Please use the live chat support system for order assistance, dispute resolution, or to initiate a refund coordination request.',
+          'Return and refund requests are assessed on a case-by-case basis in line with company policy. All claims are subject to product and order verification. Please use the live chat support system to initiate a return or refund coordination request.',
       },
     ],
   },
   {
-    category: 'Account',
+    category: 'Account Management',
     items: [
       {
         question: 'How do I change my account password?',
         answer:
-          'Go to Account Settings → Change Password. If you signed in with Google, you will need to create a password first before you can change it. For security, you will be asked to verify your current password.',
+          'Go to Account Settings → Change Password. If your account was created via Google Sign-In, you must first set a password before changing it. You will be required to verify your current password for security.',
       },
       {
         question: 'How do I delete my account?',
         answer:
-          'Go to Account Settings → Privacy Settings → Request Account Deletion. For security, account deletion requires password confirmation (for email/password accounts) or Google reauthentication (for Google accounts). This action is irreversible.',
+          'Go to Account Settings → Privacy Settings → Request Account Deletion. For security, deletion requires password confirmation (for email/password accounts) or Google reauthentication. This action is permanent and irreversible.',
       },
     ],
   },
@@ -79,9 +89,9 @@ const faqs = [
     category: 'Support',
     items: [
       {
-        question: 'How do I contact customer support?',
+        question: 'How do I reach the support team?',
         answer:
-          'Use the built-in live chat support widget at the bottom-right corner of the platform. Our team is available to assist with order coordination, delivery inquiries, account issues, and general business support.',
+          'Use the built-in live chat support widget at the bottom-right corner of the platform. Our team is available to assist with order coordination, delivery inquiries, product questions, and general account support.',
       },
     ],
   },

@@ -2,38 +2,41 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, ShieldCheck, Truck, MessageSquare, ShoppingCart, Lock } from 'lucide-react';
+import {
+  ChevronRight, ShieldCheck, Truck, MessageSquare, ClipboardList, Lock,
+  Building2, CheckCircle2, Thermometer, MapPin, Package,
+} from 'lucide-react';
 
 const features = [
   {
     icon: ShieldCheck,
-    title: 'Secure Business Accounts',
+    title: 'Food Safety Standards',
     description:
-      'Firebase Authentication protects your account with encrypted credentials and optional Google Sign-In for secure platform access.',
+      'Operations follow Good Manufacturing Practice (GMP) guidelines to maintain strict food safety and handling standards across all products.',
   },
   {
     icon: Truck,
-    title: 'Direct Company Delivery',
+    title: 'Refrigerated Direct Delivery',
     description:
-      'All orders are delivered directly by Deckta Pacific Equities, Inc., ensuring reliable product handling from warehouse to destination.',
+      'All orders are transported using dedicated refrigerated vehicles managed directly by Deckta Pacific Equities, Inc. to preserve cold-chain integrity.',
   },
   {
     icon: MessageSquare,
-    title: 'Dedicated Order Support',
+    title: 'Dedicated Business Support',
     description:
-      'Our built-in live chat connects you with our team for order coordination, delivery updates, and customer assistance.',
+      'Our team provides direct order coordination and delivery assistance through the platform\'s built-in live chat support system.',
   },
   {
-    icon: ShoppingCart,
-    title: 'Streamlined Order Processing',
+    icon: ClipboardList,
+    title: 'Streamlined Supply Ordering',
     description:
-      'Submit product orders quickly through the platform with real-time status tracking and order history management.',
+      'Business clients can submit product orders efficiently through the platform with real-time status tracking and full order history.',
   },
   {
     icon: Lock,
-    title: 'Secure Transaction Handling',
+    title: 'Secure Account & Transactions',
     description:
-      'Transactions are processed with privacy and integrity, supporting Cash, Cheque, and Bank Transfer payment methods.',
+      'All accounts are secured via Firebase Authentication. Transactions support Cash, Cheque, and Bank Transfer for commercial convenience.',
   },
 ];
 
@@ -92,7 +95,7 @@ export default function AboutPage() {
 
               {/* Description */}
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                Reliable meat supply and food distribution services for restaurants, commercial establishments, and business partners across the Philippines.
+                Reliable frozen meat supply and food distribution services for restaurants, commercial establishments, and business partners across the Philippines. Supporting both direct company delivery and warehouse pickup for flexible order fulfillment.
               </p>
 
               {/* Info chips */}
@@ -129,7 +132,7 @@ export default function AboutPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
-        {/* Hero intro card */}
+        {/* Platform Overview card */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="bg-[#2787b4] px-6 py-8 text-white">
             <div className="mb-1">
@@ -140,12 +143,12 @@ export default function AboutPage() {
             </div>
             <p className="text-blue-100 text-sm mt-1">by Deckta Pacific Equities, Inc.</p>
             <p className="text-white/90 text-sm mt-4 leading-relaxed max-w-xl">
-              A digital supply and distribution platform built for businesses and commercial clients — managed end-to-end by Deckta Pacific Equities, Inc.
+              A digital supply ordering platform for businesses and commercial clients — enabling direct access to frozen meat and food products distributed by Deckta Pacific Equities, Inc.
             </p>
           </div>
           <div className="px-6 py-5">
             <p className="text-sm text-gray-600 leading-relaxed">
-              Decktago was built to bring the meat supply and food distribution operations of Deckta Pacific Equities, Inc. into a modern, accessible platform. Designed for business clients, restaurants, and commercial buyers, Decktago streamlines the ordering process with direct company-managed delivery and dedicated account support.
+              Decktago was built to digitize the supply and distribution operations of Deckta Pacific Equities, Inc. Business clients, restaurants, and commercial establishments can submit orders directly through the platform and receive refrigerated, company-managed deliveries or arrange warehouse pickup — with full order tracking and account management built in.
             </p>
           </div>
         </div>
@@ -154,35 +157,38 @@ export default function AboutPage() {
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-6">
           <h2 className="text-base font-bold text-gray-800 mb-4">About Deckta Pacific Equities, Inc.</h2>
           <p className="text-sm text-gray-600 leading-relaxed mb-4">
-            Deckta Pacific Equities, Inc. is a Philippine-based company engaged in meat supply, food product importation, and commercial distribution. Located in Pasig City, Metro Manila, the company operates with a focus on quality handling, reliable logistics, and business-oriented customer service.
+            Deckta Pacific Equities, Inc. is a Philippine-based importer and distributor of frozen meat and food products serving restaurants, food businesses, and commercial partners across the country. With a strong focus on food safety, cold-chain logistics, and reliable distribution, the company operates dedicated storage and delivery facilities to maintain product quality from warehouse to destination.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed">
-            Through the Decktago platform, Deckta Pacific Equities, Inc. digitizes its supply operations — allowing business clients to browse available products, place orders, and receive direct company-managed deliveries with full account transparency.
+            Located in Pasig City, Metro Manila, Deckta Pacific Equities, Inc. supports both direct company-managed delivery and warehouse pickup arrangements for customers and business partners — combining quality-controlled handling, temperature-managed logistics, and responsive business support.
           </p>
 
-          {/* Company Info block */}
-          <div className="mt-6 rounded-lg bg-gray-50 border border-gray-200 px-5 py-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#2787b4] mb-3">Company Information</p>
-            <div className="space-y-1.5">
-              <p className="text-sm font-semibold text-gray-800">Deckta Pacific Equities, Inc.</p>
-              <p className="text-sm text-gray-500">268 C. Raymundo Ave,</p>
-              <p className="text-sm text-gray-500">Pasig, Metro Manila,</p>
-              <p className="text-sm text-gray-500">Philippines</p>
-              <p className="text-sm text-gray-500 pt-1">
-                Tel:{' '}
-                <a href="tel:+63225718698" className="hover:text-[#2787b4] transition-colors">
-                  (02) 571-8698
-                </a>
-              </p>
-            </div>
+          {/* Operational Highlights */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { label: 'NMIS-Accredited Cold Storage Facility', Icon: Building2 },
+              { label: 'Good Manufacturing Practice (GMP) Compliance', Icon: CheckCircle2 },
+              { label: 'Dedicated Refrigerated Delivery Fleet', Icon: Truck },
+              { label: 'Cold-Chain Integrity from Storage to Delivery', Icon: Thermometer },
+              { label: 'Metro Manila & Nearby Provinces Coverage', Icon: MapPin },
+              { label: 'Commercial Food Distribution Services', Icon: Package },
+            ].map(({ label, Icon }) => (
+              <div key={label} className="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                <div className="w-7 h-7 rounded-md bg-[#e9f4fa] flex items-center justify-center shrink-0">
+                  <Icon size={14} className="text-[#2787b4]" />
+                </div>
+                <span className="text-xs text-gray-600 leading-relaxed pt-1">{label}</span>
+              </div>
+            ))}
           </div>
+  
         </div>
 
         {/* Mission */}
         <div className="bg-[#e9f4fa] rounded-xl border border-blue-100 px-6 py-6 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-[#2787b4] mb-3">Our Mission</p>
           <p className="text-base sm:text-lg font-semibold text-gray-800 leading-relaxed max-w-xl mx-auto">
-            "To be the trusted supply and distribution partner for businesses across the Philippines — delivering quality products with reliability, professionalism, and efficiency."
+            "To be the most trusted frozen meat and food distribution partner for businesses across the Philippines — delivering product quality, cold-chain reliability, and professional service from every order."
           </p>
         </div>
 

@@ -14,7 +14,7 @@ function Chip({ label }: { label: string }) {
 
 const quickLinks = [
   { label: 'About Decktago', href: '/about' },
-  { label: 'Return & Refund Policy', href: '#' },
+  { label: 'Return & Refund Policy', href: '/return-refund-policy' },
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms & Conditions', href: '/terms-and-conditions' },
   { label: 'FAQs', href: '/faqs' },
@@ -142,10 +142,10 @@ export default function Footer() {
             </div>
 
             <h4 className="text-xs font-bold uppercase tracking-widest text-gray-800 mb-4">
-              Company Delivery
+              Delivery &amp; Pickup
             </h4>
             <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-              Orders are delivered directly by Deckta Pacific Equities, Inc. to ensure reliable handling and product quality.
+              Orders may be delivered directly by Deckta Pacific Equities, Inc. or arranged for warehouse pickup depending on customer preference.
             </p>
             <div className="group flex items-center gap-3 border border-gray-200 rounded-lg p-3 bg-white hover:border-[#2787b4] hover:shadow-sm transition-all cursor-default">
               <div className="w-10 h-10 rounded-full bg-[#e9f4fa] group-hover:bg-[#2787b4] transition-colors flex items-center justify-center shrink-0">
@@ -155,10 +155,10 @@ export default function Footer() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#2787b4] transition-colors leading-tight">Direct Company Delivery</p>
-                <p className="text-[11px] text-gray-400 leading-tight mt-0.5">Handled by Deckta Pacific Equities, Inc.</p>
+                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#2787b4] transition-colors leading-tight">Direct Delivery &amp; Pickup Available</p>
+                <p className="text-[11px] text-gray-400 leading-tight mt-0.5">Managed by Deckta Pacific Equities, Inc.</p>
                 <span className="inline-block mt-1.5 text-[10px] font-semibold bg-blue-50 text-[#2787b4] border border-blue-100 rounded-full px-2 py-0.5">
-                  Trusted Delivery Service
+                  Flexible Fulfillment Options
                 </span>
               </div>
             </div>

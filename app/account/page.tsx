@@ -479,14 +479,14 @@ if (!isPasswordUser) {
 };
 
   return (
-  <div className="min-h-screen bg-gray-100 py-10 px-4">
-    <div className="max-w-6xl mx-auto bg-white shadow-sm border rounded-md flex overflow-hidden">
+  <div className="min-h-screen bg-gray-100 py-6 sm:py-10 px-4">
+    <div className="max-w-6xl mx-auto bg-white shadow-sm border rounded-md flex flex-col lg:flex-row overflow-hidden">
 
       {/* SIDEBAR */}
-      <div className="w-[260px] border-r bg-white p-6">
+      <div className="w-full lg:w-[260px] border-b lg:border-b-0 lg:border-r bg-white p-4 sm:p-6 shrink-0">
         
         {/* PROFILE */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex flex-col lg:flex-row items-center lg:items-start text-center lg:text-left gap-3 mb-6 sm:mb-8">
           <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
             {photoURL ? (
               <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -550,12 +550,12 @@ if (!isPasswordUser) {
       </div>
 
       {/* RIGHT CONTENT */}
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-4 sm:p-6 lg:p-10 min-w-0">
         {activeTab === 'profile' && (
           <>
             {/* HEADER */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                 My Profile
               </h1>
               <p className="text-gray-500">
@@ -588,7 +588,7 @@ if (!isPasswordUser) {
   </p>
 )}
 
-  <div className="flex items-center gap-3 h-[50px] px-4 border border-gray-300 rounded-md bg-gray-50">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 sm:px-4 sm:py-0 min-h-[50px] border border-gray-300 rounded-md bg-gray-50">
 
     <span className="text-gray-800 text-sm">
       {maskEmail(user?.email)}
@@ -686,9 +686,9 @@ if (!isPasswordUser) {
         
         {activeTab === 'addresses' && (
           <>
-            <div className="flex justify-between items-center mb-8 pb-4 border-b">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6 sm:mb-8 pb-4 border-b">
               <div>
-                <h1 className="text-2xl font-semibold text-gray-800">My Addresses</h1>
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">My Addresses</h1>
               </div>
               <button
                 onClick={() => {
@@ -725,7 +725,7 @@ if (!isPasswordUser) {
                 </div>
               ) : (
                 addresses.map((addr) => (
-                  <div key={addr.id} className="py-4 border-b flex justify-between items-start">
+                  <div key={addr.id} className="py-4 border-b flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
                         <span className="font-medium text-gray-800 text-lg">{addr.fullName}</span>
@@ -740,7 +740,7 @@ if (!isPasswordUser) {
   </span>
 )}
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                       <div className="flex gap-3 text-sm">
                         <button
                           onClick={() => {
@@ -788,7 +788,7 @@ if (!isPasswordUser) {
                   >
                     <ArrowLeft size={24} />
                   </button>
-                  <h1 className="text-2xl font-semibold text-gray-800">Enter Your Password</h1>
+                  <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 text-center">Enter Your Password</h1>
                 </div>
 
                 {verifyPasswordError && (
@@ -824,7 +824,7 @@ if (!isPasswordUser) {
               </div>
             ) : (
               <div>
-                <h1 className="text-2xl font-semibold text-gray-800 mb-2">
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
                   {isCreatePasswordFlow ? 'Create Password' : 'Change Password'}
                 </h1>
                 <p className="text-gray-500 mb-8 border-b pb-4">
@@ -900,15 +900,15 @@ if (!isPasswordUser) {
           <div className="max-w-2xl">
             {deleteStep === 'default' && (
               <div>
-                <h1 className="text-2xl font-semibold text-gray-800 mb-8">Privacy Settings</h1>
-                <div className="flex items-center justify-between border-t py-6 border-b">
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Privacy Settings</h1>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t py-6 border-b gap-4 sm:gap-0">
                   <div>
                     <h3 className="text-lg font-medium text-gray-800">Request Account Deletion</h3>
                     <p className="text-sm text-gray-500 mt-1">Permanently delete your account and all associated data.</p>
                   </div>
                   <Button
                     onClick={() => setDeleteStep('warning')}
-                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium transition"
+                    className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium transition"
                   >
                     Delete
                   </Button>
@@ -918,7 +918,7 @@ if (!isPasswordUser) {
 
             {deleteStep === 'warning' && (
               <div className="max-w-md mx-auto mt-10">
-                <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Important</h1>
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 text-center">Important</h1>
                 <p className="text-gray-700 mb-4">By clicking on "Proceed", you agree to the following:</p>
                 <ul className="list-disc pl-5 space-y-2 text-gray-600 mb-8">
                   <li>Account deletion is irreversible</li>
@@ -926,7 +926,7 @@ if (!isPasswordUser) {
                   <li>Account data may be permanently deleted</li>
                   <li>Pending transactions may prevent deletion</li>
                 </ul>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Button
                     onClick={() => setDeleteStep('default')}
                     className="flex-1 py-3 text-gray-600 border border-gray-300 hover:bg-gray-50 bg-white"
@@ -945,7 +945,7 @@ if (!isPasswordUser) {
 
             {deleteStep === 'confirm' && (
               <div className="max-w-md mx-auto mt-10">
-                <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Confirm Account Deletion</h1>
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 text-center">Confirm Account Deletion</h1>
                 
                 {deleteMessage.text && (
                   <div className={`mb-6 p-4 rounded-md text-sm border ${deleteMessage.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
@@ -982,7 +982,7 @@ if (!isPasswordUser) {
                     </div>
                   )}
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Button
                     onClick={() => {
                       setDeleteStep('warning');

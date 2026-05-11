@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTutorial } from '@/hooks/useTutorial';
 import { useState } from 'react';
-
+import { Search } from "lucide-react";
 const statusColors: Record<string, string> = {
   Pending: 'bg-[#e6f2f8] text-[#2787b4]',
   'In Production': 'bg-[#e6f2f8] text-[#2787b4]',
@@ -91,13 +91,20 @@ const matchesStatus =
           <p className="text-slate-600">View and track your orders</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
+  <div className="relative flex-1">
+  <Search
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+    size={18}
+  />
+
   <input
     type="text"
     placeholder="Search Order ID..."
     value={search}
     onChange={(e) => setSearch(e.target.value)}
-    className="border rounded-lg px-4 py-2 flex-1"
+    className="border rounded-lg px-4 pr-10 py-2 w-full"
   />
+</div>
 
   <select
     value={filterStatus}

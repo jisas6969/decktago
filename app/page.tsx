@@ -11,8 +11,9 @@ import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from 'react';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Search } from "lucide-react";
 import { useTutorial } from '@/hooks/useTutorial';
+
 
 export default function HomePage() {
   const { startTutorial, isTutorialActive } = useTutorial();
@@ -168,16 +169,23 @@ useEffect(() => {
         </div>
 
         {/* 🔍 SEARCH + DROPDOWN FILTER */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
 
           {/* SEARCH */}
-          <input
-            type="text"
-            placeholder="Search product..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border px-4 py-2 rounded-lg w-full md:w-1/3"
-          />
+<div className="relative flex-1">
+  <Search
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+    size={18}
+  />
+
+  <input
+    type="text"
+    placeholder="Search product..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border px-4 pr-10 py-2 rounded-lg w-full"
+  />
+</div>
 
           {/* 🟦 CATEGORY */}
           <select
